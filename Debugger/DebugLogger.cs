@@ -1,7 +1,7 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Core
+namespace RSG.Debugger
 {
     public static class DebugLogger
     {
@@ -29,7 +29,7 @@ namespace Core
 #endif
         }
         
-        public static void LogAssert(string message, Color color?)
+        public static void LogAssert(string message, Color? color = null)
         {
 #if PROJECT_DEBUG
             Debug.LogAssertion($"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{message}</color>");

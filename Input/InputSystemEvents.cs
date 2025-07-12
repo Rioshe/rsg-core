@@ -1,6 +1,6 @@
 ﻿using UnityEngine.InputSystem;
 
-namespace InputSystem
+namespace RSG.Input
 {
     public static class InputSystemEvents<T> where T : IInputActionCollection2
     {

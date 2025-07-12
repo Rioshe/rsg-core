@@ -1,7 +1,7 @@
+using RSG.Core;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-namespace Core
+namespace RSG.Debugger
 {
     public partial class ProjectDebugger : MonoSingleton<ProjectDebugger>
     {

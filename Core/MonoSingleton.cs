@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Core
+namespace RSG.Core
 {
 	public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
 	{
