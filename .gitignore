@@ -1,0 +1,30 @@
+# Unity-generated folders to ignore
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+[Oo]bj/
+MemoryCaptures/
+Logs/
+
+# Auto-generated user settings
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+
+# Rider and VSCode folders
+.idea/
+.vscode/
+
+# Ignore only .meta files from non-essential folders
+[Ll]ibrary/**/*.meta
+[Tt]emp/**/*.meta
+[Oo]bj/**/*.meta
+[Bb]uild*/**/*.meta
+
+# Don't ignore .meta files elsewhere
+!Assets/**/*.meta
+!ProjectSettings/**/*.meta
