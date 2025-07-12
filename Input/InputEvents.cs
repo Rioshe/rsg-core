@@ -1,34 +1,34 @@
-﻿using UnityEngine.InputSystem;
+﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace RSG.Input
 {
-    public static class InputSystemEvents<T> where T : IInputActionCollection2
+    public static class InputEvents<T> where T : IInputActionCollection2
     {
         public static event System.Action EnableAllInputs;
         public static event System.Action DisableAllInputs;
-        
+
         public static event System.Action<T> EnableInput;
         public static event System.Action<T> DisableInput;
-        
-        
-        public static void SendEnableAllInputs()
+
+        public static void RaiseEnableAllInputs()
         {
             EnableAllInputs?.Invoke();
         }
-        
-        public static void SendDisableAllInputs()
+
+        public static void RaiseDisableAllInputs()
         {
             DisableAllInputs?.Invoke();
         }
-        
-        public static void SendEnableInput(T inputActionCollection2 = default)
+
+        public static void RaiseEnableInput(T input = default)
         {
-            EnableInput?.Invoke(inputActionCollection2);
+            EnableInput?.Invoke(input);
         }
-        
-        public static void SendDisableInput(T inputActionCollection2 = default)
+
+        public static void RaiseDisableInput(T input = default)
         {
-            DisableInput?.Invoke(inputActionCollection2);
+            DisableInput?.Invoke(input);
         }
     }
 }

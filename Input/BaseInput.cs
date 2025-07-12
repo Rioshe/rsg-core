@@ -3,13 +3,14 @@ using UnityEngine.InputSystem;
 
 namespace RSG.Input
 {
-    public abstract class BaseInput<T> : MonoBehaviour where T : IInputActionCollection2
+    public abstract class BaseInput<T> : MonoBehaviour where T : IInputActionCollection2, new()
     {
         protected T InputAction;
-        
+        private bool _inputEnabled;
+
         private void Awake()
         {
-            InputAction = GetInput();
+            InputAction = new T();
             EnableInput();
             Subscribe();
         }
@@ -19,27 +20,25 @@ namespace RSG.Input
             Unsubscribe();
             DisableInput();
         }
-        
+
         private void Subscribe()
         {
-            InputSystemEvents<T>.EnableInput += OnEnableInput;
-            InputSystemEvents<T>.DisableInput += OnDisableInput;
-            
-            InputSystemEvents<T>.EnableAllInputs += EnableInput;
-            InputSystemEvents<T>.DisableAllInputs += DisableInput;
-            
-            SubscribeToEvents();
+            InputEvents<T>.EnableInput += OnEnableInput;
+            InputEvents<T>.DisableInput += OnDisableInput;
+            InputEvents<T>.EnableAllInputs += EnableInput;
+            InputEvents<T>.DisableAllInputs += DisableInput;
+
+            SubscribeToActionEvents();
         }
 
         private void Unsubscribe()
         {
-            InputSystemEvents<T>.EnableInput -= OnEnableInput;
-            InputSystemEvents<T>.DisableInput -= OnDisableInput;
-            
-            InputSystemEvents<T>.EnableAllInputs -= EnableInput;
-            InputSystemEvents<T>.DisableAllInputs -= DisableInput;
-            
-            UnsubscribeToEvents();
+            InputEvents<T>.EnableInput -= OnEnableInput;
+            InputEvents<T>.DisableInput -= OnDisableInput;
+            InputEvents<T>.EnableAllInputs -= EnableInput;
+            InputEvents<T>.DisableAllInputs -= DisableInput;
+
+            UnsubscribeToActionEvents();
         }
 
         private void OnEnableInput(T input)
@@ -52,18 +51,21 @@ namespace RSG.Input
             DisableInput();
         }
 
-        private void EnableInput()
+        protected void EnableInput()
         {
-            InputAction?.Enable();
+            if (_inputEnabled || InputAction == null) return;
+            InputAction.Enable();
+            _inputEnabled = true;
+        }
+
+        protected void DisableInput()
+        {
+            if (!_inputEnabled || InputAction == null) return;
+            InputAction.Disable();
+            _inputEnabled = false;
         }
         
-        private void DisableInput()
-        {
-            InputAction?.Disable();
-        }
-        
-        protected abstract T GetInput();
-        protected abstract void SubscribeToEvents();
-        protected abstract void UnsubscribeToEvents();
+        protected abstract void SubscribeToActionEvents();
+        protected abstract void UnsubscribeToActionEvents();
     }
 }
