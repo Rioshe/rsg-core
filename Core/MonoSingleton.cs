@@ -11,14 +11,14 @@ namespace RSG.Core
 		{
 			get
 			{
-				if( s_instance == null )
+				if(!s_instance)
 				{
 					s_instance = FindFirstObjectByType(typeof(T)) as T;
-					if( s_instance == null )
+					if(!s_instance)
 					{
 						s_instance = new GameObject(typeof(T).ToString(), typeof(T)).GetComponent<T>();
 
-						if( s_instance == null )
+						if(!s_instance)
 						{
 							Debug.LogError("Problem during the creation of " + typeof(T).ToString());
 						}
@@ -36,7 +36,7 @@ namespace RSG.Core
 
 		private void Awake()
 		{
-			if (s_instance == null) {
+			if (!s_instance) {
 				s_instance = this as T;
 			} else if (s_instance != this) {
 				Debug.LogError ("Another instance of " + GetType () + " is already exist! Destroying self...");
@@ -46,7 +46,7 @@ namespace RSG.Core
 			if (!s_isInitialised) {
 				DontDestroyOnLoad(gameObject);
 				s_isInitialised = true;
-				if (s_instance != null) s_instance.Init();
+				if (s_instance) s_instance.Init();
 			}
 		}
     

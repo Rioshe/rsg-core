@@ -8,6 +8,8 @@ namespace RSG.Input
         protected T InputAction;
         private bool _inputEnabled;
 
+        public T GetInputAction() => InputAction;
+        
         private void Awake()
         {
             InputAction = new T();
