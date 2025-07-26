@@ -9,6 +9,11 @@ namespace RSG.Core
 
         private void Awake()
         {
+#if !PROJECT_DEBUG
+            Destroy(gameObject);
+            return;
+#endif
+            
             if (m_onAwake)
                 Destroy(gameObject, m_killTime);
         }
