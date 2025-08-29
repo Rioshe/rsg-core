@@ -10,7 +10,7 @@ namespace RSG.Core
 {
     public class LayersGenerator : EditorWindow
     {
-        private const string OUTPUT_FILE_PATH = "Assets/Scripts/Generated/Misc/Layers.cs";
+        private const string OUTPUT_FILE_PATH = "Assets/_Project/Scripts/Generated/Misc/Layers.cs";
         private const string LAYER_MASK_SUFFIX = "_MASK";
         private const string LAYER_INDEX_SUFFIX = "_INDEX";
         private const int MAX_LAYER_COUNT = 32;
