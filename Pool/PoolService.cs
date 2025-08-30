@@ -6,18 +6,18 @@ using UnityEngine.Pool;
 namespace RSG.Pool
 {
     [Serializable]
-    public class PoolService<T, TType>
-        where T : MonoBehaviour 
-        where TType : Enum
+    public class PoolService<TMonoBehaviour, TEnum>
+        where TMonoBehaviour : MonoBehaviour 
+        where TEnum : Enum
     {
-        private readonly PoolDatabase<T, TType> m_database;
+        private readonly PoolDatabase<TMonoBehaviour, TEnum> m_database;
         private readonly Transform m_parent;
         private readonly int m_defaultCapacity;
         private readonly int m_maxCapacity;
 
-        private Dictionary<TType, ObjectPool<T>> m_pools = new Dictionary<TType, ObjectPool<T>>();
+        private Dictionary<TEnum, ObjectPool<TMonoBehaviour>> m_pools = new Dictionary<TEnum, ObjectPool<TMonoBehaviour>>();
 
-        public PoolService(PoolDatabase<T, TType> mDatabase, Transform mParent = null, int mDefaultCapacity = 10, int mMaxCapacity = 200)
+        public PoolService(PoolDatabase<TMonoBehaviour, TEnum> mDatabase, Transform mParent = null, int mDefaultCapacity = 10, int mMaxCapacity = 200)
         {
             m_database = mDatabase;
             m_parent = mParent;
@@ -29,14 +29,14 @@ namespace RSG.Pool
 
         #region Public API
 
-        public T Spawn(TType type)
+        public TMonoBehaviour Spawn(TEnum type)
         {
             return GetFromPool(type);
         }
 
-        public T Spawn(TType type, Vector3 position, Quaternion rotation, Transform parent = null)
+        public TMonoBehaviour Spawn(TEnum type, Vector3 position, Quaternion rotation, Transform parent = null)
         {
-            T instance = GetFromPool(type);
+            TMonoBehaviour instance = GetFromPool(type);
             if (instance)
             {
                 instance.transform.SetParent(parent ?? m_parent, false);
@@ -45,36 +45,41 @@ namespace RSG.Pool
             return instance;
         }
 
-        public T Spawn(TType type, Vector3 position) => Spawn(type, position, Quaternion.identity);
+        public TMonoBehaviour Spawn(TEnum type, Vector3 position) => Spawn(type, position, Quaternion.identity);
 
-        private T GetFromPool(TType type)
+        private TMonoBehaviour GetFromPool(TEnum type)
         {
-            if (!m_pools.TryGetValue(type, out ObjectPool<T> pool))
+            if (!m_pools.TryGetValue(type, out ObjectPool<TMonoBehaviour> pool))
             {
-                Debug.LogError($"No pool for {typeof(T)} type {type}");
+                Debug.LogError($"No pool for {typeof(TMonoBehaviour)} type {type}");
                 return null;
             }
             return pool.Get();
         }
         
-        public void Despawn(TType type, T instance)
+        public void Despawn(TMonoBehaviour instance)
         {
-            if (!m_pools.TryGetValue(type, out ObjectPool<T> pool))
+            if (instance is not IPoolable<TMonoBehaviour, TEnum> poolable)
             {
-                Debug.LogError($"No pool for {typeof(T)} type {type}");
-                UnityEngine.Object.Destroy(instance.gameObject); // fallback
+                Debug.LogError($"{instance.name} is not poolable!");
+                UnityEngine.Object.Destroy(instance.gameObject);
                 return;
             }
+
+            if (!m_pools.TryGetValue(poolable.PoolType, out ObjectPool<TMonoBehaviour> pool))
+            {
+                Debug.LogError($"No pool for {typeof(TMonoBehaviour)} type {poolable.PoolType}");
+                UnityEngine.Object.Destroy(instance.gameObject);
+                return;
+            }
+
             pool.Release(instance);
         }
+
         
-        /// <summary>
-        /// Returns all currently active instances of a given type.
-        /// (May be useful for debugging or gameplay logic like clearing bullets.)
-        /// </summary>
-        public IEnumerable<T> GetActiveInstances(TType type)
+        public IEnumerable<TMonoBehaviour> GetActiveInstances(TEnum type)
         {
-            if (!m_pools.TryGetValue(type, out ObjectPool<T> pool))
+            if (!m_pools.TryGetValue(type, out ObjectPool<TMonoBehaviour> pool))
                 yield break;
 
             // Unity's ObjectPool does not track active instances,
@@ -82,40 +87,30 @@ namespace RSG.Pool
             // For now, this is just a placeholder for when you want to expand.
         }
 
-        /// <summary>
-        /// Prewarm a pool by creating N instances immediately.
-        /// Useful to avoid runtime spikes.
-        /// </summary>
-        public void Prewarm(TType type, int count)
+        public void Prewarm(TEnum type, int count)
         {
-            if (!m_pools.TryGetValue(type, out ObjectPool<T> pool))
+            if (!m_pools.TryGetValue(type, out ObjectPool<TMonoBehaviour> pool))
                 return;
 
-            List<T> temp = new List<T>(count);
+            List<TMonoBehaviour> temp = new List<TMonoBehaviour>(count);
             for (int i = 0; i < count; i++)
                 temp.Add(pool.Get());
 
-            foreach (T obj in temp)
+            foreach (TMonoBehaviour obj in temp)
                 pool.Release(obj);
         }
 
-        /// <summary>
-        /// Despawn all instances of a given type (force clear).
-        /// </summary>
-        public void Clear(TType type)
+        public void Clear(TEnum type)
         {
-            if (!m_pools.TryGetValue(type, out ObjectPool<T> pool))
+            if (!m_pools.TryGetValue(type, out ObjectPool<TMonoBehaviour> pool))
                 return;
 
             pool.Clear();
         }
 
-        /// <summary>
-        /// Despawn everything in all pools (force clear).
-        /// </summary>
         public void ClearAll()
         {
-            foreach (ObjectPool<T> pool in m_pools.Values)
+            foreach (ObjectPool<TMonoBehaviour> pool in m_pools.Values)
                 pool.Clear();
         }
 
@@ -124,9 +119,9 @@ namespace RSG.Pool
         private void InitialisePools()
         {
             m_pools.Clear();
-            foreach (TType type in Enum.GetValues(typeof(TType)))
+            foreach (TEnum type in Enum.GetValues(typeof(TEnum)))
             {
-                ObjectPool<T> pool = new ObjectPool<T>(
+                ObjectPool<TMonoBehaviour> pool = new ObjectPool<TMonoBehaviour>(
                     createFunc: () => Create(type),
                     actionOnGet: OnGet,
                     actionOnRelease: OnRelease,
@@ -139,23 +134,33 @@ namespace RSG.Pool
             }
         }
 
-        private T Create(TType type)
+        private TMonoBehaviour Create(TEnum type)
         {
-            T prefab = m_database.GetPrefab(type);
+            TMonoBehaviour prefab = m_database.GetPrefab(type);
             if (!prefab)
             {
-                Debug.LogError($"No prefab found for {typeof(T)} type {type}");
+                Debug.LogError($"No prefab found for {typeof(TMonoBehaviour)} type {type}");
                 return null;
             }
-            T instance = UnityEngine.Object.Instantiate(prefab, m_parent);
+
+            TMonoBehaviour instance = UnityEngine.Object.Instantiate(prefab, m_parent);
+
+            if (instance is IPoolable<TMonoBehaviour, TEnum> poolable)
+            {
+                poolable.PoolService = this;
+                poolable.PoolType = type; // inject the type too
+            }
+
             OnCreated(instance, type);
             instance.gameObject.SetActive(false);
             return instance;
         }
 
-        protected virtual void OnCreated(T instance, TType type) { }
-        protected virtual void OnGet(T instance) => instance.gameObject.SetActive(true);
-        protected virtual void OnRelease(T instance) => instance.gameObject.SetActive(false);
-        protected virtual void OnDestroy(T instance) => UnityEngine.Object.Destroy(instance.gameObject);
+
+
+        protected virtual void OnCreated(TMonoBehaviour instance, TEnum type) { }
+        protected virtual void OnGet(TMonoBehaviour instance) => instance.gameObject.SetActive(true);
+        protected virtual void OnRelease(TMonoBehaviour instance) => instance.gameObject.SetActive(false);
+        protected virtual void OnDestroy(TMonoBehaviour instance) => UnityEngine.Object.Destroy(instance.gameObject);
     }
 }
