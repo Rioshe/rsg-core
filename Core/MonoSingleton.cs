@@ -50,7 +50,7 @@ namespace RSG.Core
 			}
 		}
     
-		public virtual void Init(){}
+		protected virtual void Init(){}
 	
 		private void OnApplicationQuit()
 		{

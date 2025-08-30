@@ -20,7 +20,7 @@ namespace RSG.Pool
         // Hook for child registries to implement
         protected abstract void RegisterPools();
 
-        public override void Init()
+        protected override void Init()
         {
             RegisterPools();
         }
