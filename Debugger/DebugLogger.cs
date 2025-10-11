@@ -32,7 +32,7 @@ namespace RSG.Debugger
         public static void LogAssert(string message, Color? color = null)
         {
 #if PROJECT_DEBUG
-            Debug.LogAssertion($"<color=#{ColorUtility.ToHtmlStringRGB(color ?? Color.aquamarine)}>{message}</color>");
+            Debug.LogAssertion($"<color=#{ColorUtility.ToHtmlStringRGB(color ?? Color.white)}>{message}</color>");
 #endif
         }
     }
