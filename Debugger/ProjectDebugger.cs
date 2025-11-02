@@ -6,34 +6,6 @@ namespace RSG.Debugger
 {
     public partial class ProjectDebugger : MonoSingleton<ProjectDebugger>
     {
-        public void Log(string message, Color color)
-        {
-#if PROJECT_DEBUG
-            Debug.Log($"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{message}</color>");
-#endif
-        }
-        
-        public void LogError(string message)
-        {
-#if PROJECT_DEBUG
-            Debug.LogError(message);
-#endif
-        }
-        
-        public void LogWarning(string message)
-        {
-#if PROJECT_DEBUG
-            Debug.LogWarning(message);
-#endif
-        }
-        
-        public void LogAssert(string message, Color color)
-        {
-#if PROJECT_DEBUG
-            Debug.LogAssertion($"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{message}</color>");
-#endif
-        }
-        
         public void MarkPosition(Vector3 position, int destroyAfterSeconds = 2, float scale = 0.1f)
         {
 #if PROJECT_DEBUG
