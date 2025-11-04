@@ -6,67 +6,68 @@ namespace RSG.Input
     public abstract class BaseInput<T> : MonoBehaviour where T : IInputActionCollection2, new()
     {
         protected T InputAction;
-        private bool _inputEnabled;
+        private bool _isComponentEnabled = false;
 
         public T GetInputAction() => InputAction;
-        
+
         private void Awake()
         {
             InputAction = new T();
-            EnableInput();
-            Subscribe();
         }
 
-        private void OnDestroy()
+        private void OnEnable()
         {
+            _isComponentEnabled = true;
+            Subscribe();
+            UpdateInputState();
+        }
+
+        private void OnDisable()
+        {
+            _isComponentEnabled = false;
             Unsubscribe();
             DisableInput();
         }
 
         private void Subscribe()
         {
-            InputEvents<T>.EnableInput += OnEnableInput;
-            InputEvents<T>.DisableInput += OnDisableInput;
-            InputEvents<T>.EnableAllInputs += EnableInput;
-            InputEvents<T>.DisableAllInputs += DisableInput;
-
+            InputEvents<T>.OnStateChanged += OnGlobalStateChanged;
             SubscribeToActionEvents();
         }
 
         private void Unsubscribe()
         {
-            InputEvents<T>.EnableInput -= OnEnableInput;
-            InputEvents<T>.DisableInput -= OnDisableInput;
-            InputEvents<T>.EnableAllInputs -= EnableInput;
-            InputEvents<T>.DisableAllInputs -= DisableInput;
-
+            InputEvents<T>.OnStateChanged -= OnGlobalStateChanged;
             UnsubscribeToActionEvents();
         }
 
-        private void OnEnableInput(T input)
+        private void OnGlobalStateChanged(bool isGloballyEnabled)
         {
-            EnableInput();
+            UpdateInputState();
         }
 
-        private void OnDisableInput(T input)
+        private void UpdateInputState()
         {
-            DisableInput();
+            if (_isComponentEnabled && InputEvents<T>.IsGloballyEnabled)
+            {
+                EnableInput();
+            }
+            else
+            {
+                DisableInput();
+            }
         }
 
         protected void EnableInput()
         {
-            if (_inputEnabled || InputAction == null) return;
-            InputAction.Enable();
-            _inputEnabled = true;
+            InputAction?.Enable();
         }
 
         protected void DisableInput()
         {
-            if (!_inputEnabled || InputAction == null) return;
-            InputAction.Disable();
-            _inputEnabled = false;
+            InputAction?.Disable();
         }
-        
+
         protected abstract void SubscribeToActionEvents();
         protected abstract void UnsubscribeToActionEvents();
     }

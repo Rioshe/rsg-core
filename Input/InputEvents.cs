@@ -1,33 +1,26 @@
 ﻿using UnityEngine.InputSystem;
+using System;
 
 namespace RSG.Input
 {
     public static class InputEvents<T> where T : IInputActionCollection2
     {
-        public static event System.Action EnableAllInputs;
-        public static event System.Action DisableAllInputs;
+        public static bool IsGloballyEnabled { get; private set; } = true;
+        
+        public static event Action<bool> OnStateChanged;
 
-        public static event System.Action<T> EnableInput;
-        public static event System.Action<T> DisableInput;
-
-        public static void RaiseEnableAllInputs()
+        public static void RaiseEnable()
         {
-            EnableAllInputs?.Invoke();
+            if (IsGloballyEnabled) return;
+            IsGloballyEnabled = true;
+            OnStateChanged?.Invoke(true);
         }
 
-        public static void RaiseDisableAllInputs()
+        public static void RaiseDisable()
         {
-            DisableAllInputs?.Invoke();
-        }
-
-        public static void RaiseEnableInput(T input = default)
-        {
-            EnableInput?.Invoke(input);
-        }
-
-        public static void RaiseDisableInput(T input = default)
-        {
-            DisableInput?.Invoke(input);
+            if (!IsGloballyEnabled) return;
+            IsGloballyEnabled = false;
+            OnStateChanged?.Invoke(false);
         }
     }
 }
