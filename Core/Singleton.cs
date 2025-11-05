@@ -1,6 +1,8 @@
-﻿namespace RSG.Core
+﻿using System;
+
+namespace RSG.Core
 {
-    public abstract class Singleton<T> where T : class, new()
+    public abstract class Singleton<T> where T : class
     {
         private static readonly object s_lock = new object();
         private static T s_instance;
@@ -14,18 +16,15 @@
                     lock (s_lock)
                     {
                         if (s_instance == null)
-                            s_instance = new T();
+                        {
+                            s_instance = (T)Activator.CreateInstance(typeof(T), true);
+                        }
                     }
                 }
                 return s_instance;
             }
         }
 
-        protected Singleton()
-        {
-            // Prevent external instantiation through reflection
-            if (s_instance != null)
-                throw new System.Exception($"Singleton of type {typeof(T)} already exists!");
-        }
+        protected Singleton() { }
     }
 }

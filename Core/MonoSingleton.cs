@@ -2,59 +2,57 @@ using UnityEngine;
 
 namespace RSG.Core
 {
-	public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
-	{
-		private static T s_instance;
-		private static bool s_isInitialised;
+    public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
+    {
+        private static T s_instance;
+        private static readonly object s_lock = new object();
+        private static bool s_isQuitting = false;
 
-		public static T Instance
-		{
-			get
-			{
-				if(!s_instance)
-				{
-					s_instance = FindFirstObjectByType(typeof(T)) as T;
-					if(!s_instance)
-					{
-						s_instance = new GameObject(typeof(T).ToString(), typeof(T)).GetComponent<T>();
+        public static T Instance
+        {
+            get
+            {
+                if (s_isQuitting)
+                {
+                    return null;
+                }
 
-						if(!s_instance)
-						{
-							Debug.LogError("Problem during the creation of " + typeof(T).ToString());
-						}
-					}
-                
-					if (!s_isInitialised){
-						s_isInitialised = true;
-						s_instance.Init();
-					}
-				}
-            
-				return s_instance;
-			}
-		}
+                lock (s_lock)
+                {
+                    if (s_instance == null)
+                    {
+                        s_instance = FindFirstObjectByType(typeof(T)) as T;
+                        if (!s_instance)
+                        {
+                            var singletonObject = new GameObject();
+                            s_instance = singletonObject.AddComponent<T>();
+                            singletonObject.name = $"{typeof(T).ToString()} (Singleton)";
+                        }
+                    }
+                    return s_instance;
+                }
+            }
+        }
 
-		private void Awake()
-		{
-			if (!s_instance) {
-				s_instance = this as T;
-			} else if (s_instance != this) {
-				Debug.LogError ("Another instance of " + GetType () + " is already exist! Destroying self...");
-				DestroyImmediate (this);
-				return;
-			}
-			if (!s_isInitialised) {
-				DontDestroyOnLoad(gameObject);
-				s_isInitialised = true;
-				if (s_instance) s_instance.Init();
-			}
-		}
-    
-		protected virtual void Init(){}
-	
-		private void OnApplicationQuit()
-		{
-			s_instance = null;
-		}
-	}
+        protected virtual void Awake()
+        {
+            if (s_instance == null)
+            {
+                s_instance = this as T;
+                DontDestroyOnLoad(gameObject);
+                Init(); 
+            }
+            else if (s_instance != this)
+            {
+                Debug.LogWarning($"Duplicate instance of {GetType()} found. Destroying...", gameObject);
+                Destroy(gameObject);
+            }
+        }
+
+        protected virtual void Init() { }
+        protected virtual void OnApplicationQuit()
+        {
+            s_isQuitting = true;
+        }
+    }
 }
