@@ -5,67 +5,41 @@ namespace RSG.Input
 {
     public abstract class BaseInput<T> : MonoBehaviour where T : IInputActionCollection2, new()
     {
-        protected T InputAction;
-        private bool _isComponentEnabled = false;
+        [Header("Input Configuration")]
+        [Tooltip("The Scriptable Object that provides the Input Actions and global state.")]
+        [SerializeField] private InputProviderSO<T> _inputProvider;
 
-        public T GetInputAction() => InputAction;
+        protected T InputAction
+        {
+            get => _inputProvider.InputActions;
+        }
+
+        public T GetInputAction()
+        {
+            return InputAction;
+        }
 
         private void Awake()
         {
-            InputAction = new T();
+            if (!_inputProvider)
+            {
+                Debug.LogError($"InputProviderSO not set on {gameObject.name}. Disabling component.", this);
+                enabled = false;
+            }
         }
 
         private void OnEnable()
         {
-            _isComponentEnabled = true;
-            Subscribe();
-            UpdateInputState();
+            if (!_inputProvider) return;
+            _inputProvider.RegisterListener();
+            SubscribeToActionEvents();
         }
 
         private void OnDisable()
         {
-            _isComponentEnabled = false;
-            Unsubscribe();
-            DisableInput();
-        }
-
-        private void Subscribe()
-        {
-            InputEvents<T>.OnStateChanged += OnGlobalStateChanged;
-            SubscribeToActionEvents();
-        }
-
-        private void Unsubscribe()
-        {
-            InputEvents<T>.OnStateChanged -= OnGlobalStateChanged;
+            if (!_inputProvider) return;
+            _inputProvider.UnregisterListener();
             UnsubscribeToActionEvents();
-        }
-
-        private void OnGlobalStateChanged(bool isGloballyEnabled)
-        {
-            UpdateInputState();
-        }
-
-        private void UpdateInputState()
-        {
-            if (_isComponentEnabled && InputEvents<T>.IsGloballyEnabled)
-            {
-                EnableInput();
-            }
-            else
-            {
-                DisableInput();
-            }
-        }
-
-        protected void EnableInput()
-        {
-            InputAction?.Enable();
-        }
-
-        protected void DisableInput()
-        {
-            InputAction?.Disable();
         }
 
         protected abstract void SubscribeToActionEvents();
