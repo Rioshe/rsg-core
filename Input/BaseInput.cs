@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace RSG.Input
+namespace RSG.Core
 {
     public abstract class BaseInput<T> : MonoBehaviour where T : IInputActionCollection2, new()
     {

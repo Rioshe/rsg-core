@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace RSG.Pool
+namespace RSG.Core
 {
     [Serializable]
     internal struct PoolEntry<TPrefab, TEnum> where TPrefab : MonoBehaviour where TEnum : Enum

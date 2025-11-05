@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RSG.Pool
+namespace RSG.Core
 {
     public abstract class PoolRegistryBase : MonoSingleton<PoolRegistryBase>
     {

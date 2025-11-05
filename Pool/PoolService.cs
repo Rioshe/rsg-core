@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace RSG.Pool
+namespace RSG.Core
 {
     [Serializable]
     public class PoolService<TMonoBehaviour, TEnum>

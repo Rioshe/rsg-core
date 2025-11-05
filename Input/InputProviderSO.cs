@@ -2,7 +2,7 @@
 using UnityEngine.InputSystem;
 using System;
 
-namespace RSG.Input
+namespace RSG.Core
 {
     public abstract class InputProviderSO<T> : ScriptableObject where T : IInputActionCollection2, new()
     {

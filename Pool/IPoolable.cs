@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace RSG.Pool
+namespace RSG.Core
 {
     public interface IPoolable<TMonoBehaviour, TEnum>
         where TMonoBehaviour : MonoBehaviour 
