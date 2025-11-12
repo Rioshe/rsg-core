@@ -1,61 +1,209 @@
 using UnityEngine;
+using UnityEngine.Events; // ReqUIred for UnityAction
 using UnityEngine.InputSystem;
 
 namespace RSG
 {
-    [CreateAssetMenu( fileName = "InputReader", menuName = "RSG/Input/Input Reader" )]
-    public class InputReader : ScriptableObject, GameInput.IPlayerActions
+    [CreateAssetMenu(fileName = "InputReader", menuName = "RSG/Input/Input Reader")]
+    public class InputReader : ScriptableObject, GameInput.IPlayerActions, GameInput.IUIActions
     {
         private GameInput _gameInput;
-        
+
+        #region Player Action Events
+        // --- Player ---
+        public event UnityAction<Vector2> MoveEvent;
+        public event UnityAction<Vector2> LookEvent;
+        public event UnityAction AttackEvent;
+        public event UnityAction InteractEvent;
+        public event UnityAction<bool> CrouchEvent; // (bool) for hold actions
+        public event UnityAction JumpEvent;
+        public event UnityAction PreviousEvent;
+        public event UnityAction NextEvent;
+        public event UnityAction<bool> SprintEvent; // (bool) for hold actions
+        #endregion
+
+        #region UI Action Events
+        // --- UI ---
+        public event UnityAction<Vector2> NavigateEvent;
+        public event UnityAction SubmitEvent;
+        public event UnityAction CancelEvent;
+        public event UnityAction<Vector2> PointEvent;
+        public event UnityAction ClickEvent;
+        public event UnityAction RightClickEvent;
+        public event UnityAction MiddleClickEvent;
+        public event UnityAction<Vector2> ScrollWheelEvent;
+        public event UnityAction<Vector3> TrackedDevicePositionEvent;
+        public event UnityAction<Quaternion> TrackedDeviceOrientationEvent;
+        #endregion
+
         private void OnEnable()
         {
-            if( _gameInput == null )
+            if (_gameInput == null)
             {
                 _gameInput = new GameInput();
-                _gameInput.Player.SetCallbacks( this );
+                // Set callbacks for BOTH action maps
+                _gameInput.Player.SetCallbacks(this);
+                _gameInput.UI.SetCallbacks(this);
             }
+            
+            // Start with UI input enabled (e.g., for a main menu)
+            EnableUIInput();
         }
 
         private void OnDisable()
         {
+            // Disable all action maps
             _gameInput.Player.Disable();
+            _gameInput.UI.Disable();
         }
-        public void OnMove( InputAction.CallbackContext context )
+
+        #region Action Map Switchers
+        
+        public void EnablePlayerInput()
         {
-            throw new System.NotImplementedException();
+            _gameInput.UI.Disable();
+            _gameInput.Player.Enable();
         }
-        public void OnLook( InputAction.CallbackContext context )
+
+        public void EnableUIInput()
         {
-            throw new System.NotImplementedException();
+            _gameInput.Player.Disable();
+            _gameInput.UI.Enable();
         }
-        public void OnAttack( InputAction.CallbackContext context )
+
+        public bool IsPlayerInputEnabled()
         {
-            throw new System.NotImplementedException();
+            return _gameInput.Player.enabled;
         }
-        public void OnInteract( InputAction.CallbackContext context )
+
+        public bool IsUIInputEnabled()
         {
-            throw new System.NotImplementedException();
+            return _gameInput.UI.enabled;
         }
-        public void OnCrouch( InputAction.CallbackContext context )
+        
+        #endregion
+
+        #region Player Action Implementations
+        
+        public void OnMove(InputAction.CallbackContext context)
         {
-            throw new System.NotImplementedException();
+            // This is a continuous action, fires every frame value changes
+            MoveEvent?.Invoke(context.ReadValue<Vector2>());
         }
-        public void OnJump( InputAction.CallbackContext context )
+
+        public void OnLook(InputAction.CallbackContext context)
         {
-            throw new System.NotImplementedException();
+            LookEvent?.Invoke(context.ReadValue<Vector2>());
         }
-        public void OnPrevious( InputAction.CallbackContext context )
+
+        public void OnAttack(InputAction.CallbackContext context)
         {
-            throw new System.NotImplementedException();
+            // This is a button press, only fire on 'performed' (on press)
+            if (context.performed)
+                AttackEvent?.Invoke();
         }
-        public void OnNext( InputAction.CallbackContext context )
+
+        public void OnInteract(InputAction.CallbackContext context)
         {
-            throw new System.NotImplementedException();
+            if (context.performed)
+                InteractEvent?.Invoke();
         }
-        public void OnSprint( InputAction.CallbackContext context )
+
+        public void OnCrouch(InputAction.CallbackContext context)
         {
-            throw new System.NotImplementedException();
+            // This is a hold action
+            if (context.performed) // Button pressed
+                CrouchEvent?.Invoke(true);
+            else if (context.canceled) // Button released
+                CrouchEvent?.Invoke(false);
         }
+
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                JumpEvent?.Invoke();
+        }
+
+        public void OnPrevious(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                PreviousEvent?.Invoke();
+        }
+
+        public void OnNext(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                NextEvent?.Invoke();
+        }
+
+        public void OnSprint(InputAction.CallbackContext context)
+        {
+            // This is a hold action
+            if (context.performed) // Button pressed
+                SprintEvent?.Invoke(true);
+            else if (context.canceled) // Button released
+                SprintEvent?.Invoke(false);
+        }
+        
+        #endregion
+
+        #region UI Action Implementations
+        
+        public void OnNavigate(InputAction.CallbackContext context)
+        {
+            NavigateEvent?.Invoke(context.ReadValue<Vector2>());
+        }
+
+        public void OnSubmit(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                SubmitEvent?.Invoke();
+        }
+
+        public void OnCancel(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                CancelEvent?.Invoke();
+        }
+
+        public void OnPoint(InputAction.CallbackContext context)
+        {
+            PointEvent?.Invoke(context.ReadValue<Vector2>());
+        }
+
+        public void OnClick(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                ClickEvent?.Invoke();
+        }
+
+        public void OnRightClick(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                RightClickEvent?.Invoke();
+        }
+
+        public void OnMiddleClick(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                MiddleClickEvent?.Invoke();
+        }
+
+        public void OnScrollWheel(InputAction.CallbackContext context)
+        {
+            ScrollWheelEvent?.Invoke(context.ReadValue<Vector2>());
+        }
+
+        public void OnTrackedDevicePosition(InputAction.CallbackContext context)
+        {
+            TrackedDevicePositionEvent?.Invoke(context.ReadValue<Vector3>());
+        }
+
+        public void OnTrackedDeviceOrientation(InputAction.CallbackContext context)
+        {
+            TrackedDeviceOrientationEvent?.Invoke(context.ReadValue<Quaternion>());
+        }
+        
+        #endregion
     }
 }
