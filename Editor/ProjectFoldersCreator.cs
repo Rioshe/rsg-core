@@ -1,7 +1,7 @@
 using UnityEditor;
 using System.IO;
 
-namespace RSG.Core.Editor
+namespace RSG.Editor
 {
     public class ProjectFoldersCreator
     {

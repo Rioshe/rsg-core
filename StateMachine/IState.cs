@@ -1,4 +1,4 @@
-namespace RSG.StateMachine
+namespace RSG
 {
     public interface IState
     {

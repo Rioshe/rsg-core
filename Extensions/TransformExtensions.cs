@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace RSG.Core
+namespace RSG
 {
     public static class TransformExtensions
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RSG.Core
+namespace RSG
 {
     public class KillMePlease : MonoBehaviour
     {

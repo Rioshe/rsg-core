@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RSG.Core
+namespace RSG
 {
     public abstract class Singleton<T> where T : class
     {

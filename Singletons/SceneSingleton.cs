@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace RSG.Core
+namespace RSG
 {
     public abstract class SceneSingleton<T> : MonoBehaviour where T : MonoBehaviour
     {

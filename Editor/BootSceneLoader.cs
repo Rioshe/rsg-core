@@ -3,7 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace RSG.Core.Editor
+namespace RSG.Editor
 {
     [InitializeOnLoad]
     public static class BootSceneLoader

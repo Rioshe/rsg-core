@@ -1,6 +1,6 @@
 using System;
 
-namespace RSG.StateMachine
+namespace RSG
 {
     public class StateMachine
     {
