@@ -1,9 +1,19 @@
 using System;
 
-namespace RSG
+namespace RSG.FiniteStateMachine
 {
     public class StateMachine
     {
+        public int CurrentState
+        {
+            get => m_currentState;
+        }
+
+        public int LastState
+        {
+            get => m_lastState;
+        }
+
         private int m_currentState = -1;
         private int m_targetState = -1;
         private int m_lastState = -1;
@@ -11,17 +21,17 @@ namespace RSG
         private readonly IState[] m_states;
         private readonly Action<int> m_debugStateChangeCallback;
         
-        public StateMachine(Enum stateCount, Action<int> debugStateChangeCallback = null)
+        public StateMachine(int numStates, Action<int> debugStateChangeCallback = null)
         {
-            int count = Convert.ToInt32(stateCount);
-            m_states = new IState[count];
+            m_states = new IState[numStates];
             m_debugStateChangeCallback = debugStateChangeCallback;
         }
-        
+     
         public void RegisterState(Enum stateEnum, IState state)
         {
-            int stateInt = Convert.ToInt32(stateEnum); 
+            int stateInt = Convert.ToInt32(stateEnum);
             m_states[stateInt] = state;
+            state.OnInitialize(this); 
         }
 
         public void SetState(Enum targetState)
@@ -43,16 +53,6 @@ namespace RSG
                 m_debugStateChangeCallback?.Invoke(m_targetState);
 #endif
             }
-        }
-
-        public int GetLastState()
-        {
-            return m_lastState;
-        }
-
-        public int GetCurrentState()
-        {
-            return m_currentState;
         }
 
         public bool IsState(Enum stateEnum)
@@ -83,15 +83,15 @@ namespace RSG
 
             if (m_currentState >= 0)
             {
-                m_states[m_currentState].OnUpdate();
+                m_states[CurrentState].OnUpdate();
             }
         }
 
-        public void FixUpdate()
+        public void FixedUpdate()
         {
-            if (m_currentState >= 0)
+            if (CurrentState >= 0)
             {
-                m_states[m_currentState].OnFixedUpdate();
+                m_states[CurrentState].OnFixedUpdate();
             }
         }
         
