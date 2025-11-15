@@ -74,6 +74,8 @@ namespace RSG.Editor
             m_inputReader.RightClickEvent -= OnRightClick;
             m_inputReader.MiddleClickEvent -= OnMiddleClick;
             m_inputReader.ScrollWheelEvent -= OnScrollWheel;
+            m_inputReader.MouseDownEvent -= OnMouseDown;
+            m_inputReader.MouseUpEvent -= OnMouseUp;
             m_inputReader.PointEvent -= OnPointEvent;
         }
 

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,63 +6,69 @@ namespace RSG
 {
     public class Bootstrapper : MonoBehaviour
     {
-        [Header( "Scene to load after booting" )]
-        [SerializeField] private string nextSceneName = "_Main";
+        [Header("Scene to load after booting")]
+        [SerializeField] private string m_nextSceneName = "_Main";
 
-        [Header( "System prefabs to auto-spawn" )]
-        [SerializeField] private List<GameObject> systemPrefabs;
-        [SerializeField] private List<GameObject> debugPrefabs;
+        [Header("System prefabs to auto-spawn")]
+        [SerializeField] private List<GameObject> m_bootPrefabs = new List<GameObject>();
 
-        private static bool _initialized = false;
+#if RSG_DEBUG
+        [Header("Debug-only prefabs")]
+        [SerializeField] private List<GameObject> m_debugPrefabs = new List<GameObject>();
+#endif
 
         private void Awake()
         {
-            // Prevent duplicates if Boot scene is reloaded
-            if( _initialized )
-            {
-                Destroy( gameObject );
-                return;
-            }
-
-            _initialized = true;
-            DontDestroyOnLoad( gameObject );
-
             CreateSystems();
-            LoadNextScene();
         }
 
-        /// <summary>
-        /// Instantiates and preserves system prefabs between scenes.
-        /// </summary>
+        private void Start()
+        {
+            LoadNextScene();
+        }
+        
+        // -------------------------------------------------------------------
+        // SYSTEM CREATION
+        // --------------------------------------------------------------------
         private void CreateSystems()
         {
+            List<GameObject> systemsToSpawn = new List<GameObject>(m_bootPrefabs);
+
 #if RSG_DEBUG
-            if( debugPrefabs != null && debugPrefabs.Count != 0 )
-            {
-                systemPrefabs.AddRange( debugPrefabs );
-            }     
+            systemsToSpawn.AddRange(m_debugPrefabs);
 #endif
-            
-            foreach( GameObject prefab in systemPrefabs )
+
+            foreach (GameObject prefab in systemsToSpawn)
             {
-                if( prefab == null )
+                if (!prefab)
                 {
-                    Debug.LogWarning( "[Bootstrapper] A system prefab slot is empty." );
+                    Debug.LogWarning("[Bootstrapper] Null prefab in list.");
                     continue;
                 }
 
-                GameObject instance = Instantiate( prefab );
-                instance.name = prefab.name; // Remove (Clone)
-                DontDestroyOnLoad( instance );
+                GameObject instance = Instantiate(prefab);
+                instance.name = prefab.name;
+
+                DontDestroyOnLoad(instance);
             }
 
-            Debug.Log( $"[Bootstrapper] Spawned {systemPrefabs.Count} system prefabs." );
+            Debug.Log($"[Bootstrapper] Spawned {systemsToSpawn.Count} bootstrap systems.");
         }
 
+
+        // --------------------------------------------------------------------
+        // SCENE LOADING
+        // --------------------------------------------------------------------
         private void LoadNextScene()
         {
-            Debug.Log( $"[Bootstrapper] Loading next scene: {nextSceneName}" );
-            SceneManager.LoadSceneAsync( nextSceneName );
+            if (string.IsNullOrEmpty(m_nextSceneName))
+            {
+                Debug.LogError("[Bootstrapper] Next scene name is empty.");
+                return;
+            }
+
+            Debug.Log($"[Bootstrapper] Loading next scene: {m_nextSceneName}");
+            SceneManager.LoadSceneAsync(m_nextSceneName);
         }
     }
 }
