@@ -101,3 +101,4 @@ InitTestScene*.unity*
 
 #RSG
 /[Aa]ssets/_Sandbox/*
+/[Aa]ssets/Plugins/*
