@@ -9,9 +9,9 @@ namespace RSG.Editor
     {
         private static readonly string[] packages = new[]
         {
-            "com.unity.in-game-debug-console",
+            "https://github.com/yasirkula/UnityIngameDebugConsole",
             "https://github.com/Tayx94/graphy.git",
-            "com.demigiant.dotween"
+            "https://github.com/Demigiant/dotween.git"
         };
 
         private static int index = 0;
