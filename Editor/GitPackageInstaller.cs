@@ -5,19 +5,22 @@ using UnityEditor.PackageManager.Requests;
 
 namespace RSG.Editor
 {
-    public static class PackageInstaller
+    public static class GitPackageInstaller
     {
+        // --- List of packages to install from Git ---
         private static readonly string[] packages = new[]
         {
-            "https://github.com/yasirkula/UnityIngameDebugConsole",
             "https://github.com/Tayx94/graphy.git",
-            "https://github.com/Demigiant/dotween.git"
+            "https://github.com/yasirkula/UnityIngameDebugConsole.git"
+            // Add any other Git URLs here
         };
+
+        // --- Installation Logic ---
 
         private static int index = 0;
         private static AddRequest currentRequest;
 
-        [MenuItem("RSG/Install Essential Packages")]
+        [MenuItem("RSG/Install Git Packages")]
         public static void Install()
         {
             Debug.Log("<color=cyan>[RSG]</color> Installing essential packages...");
@@ -52,7 +55,7 @@ namespace RSG.Editor
                 }
                 else
                 {
-                    Debug.LogError($"<color=red>[RSG]</color> Failed to install: {currentRequest.Error.message}");
+                    Debug.LogError($"<color=red>[RSG]</color> Failed to install '{packages[index]}': {currentRequest.Error.message}");
                 }
 
                 index++;
