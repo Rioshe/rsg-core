@@ -100,5 +100,7 @@ InitTestScene*.unity*
 .idea/
 
 #RSG
-/[Aa]ssets/_Sandbox/*
-/[Aa]ssets/Plugins/*
+/[Aa]ssets/_Sandbox/
+/[Aa]ssets/Plugins/
+/[Aa]ssets/Graphy - Ultimate Stats Monitor/
+/[Aa]ssets/TextMesh Pro/

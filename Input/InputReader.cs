@@ -29,7 +29,7 @@ namespace RSG
         public event UnityAction SubmitEvent;
         public event UnityAction CancelEvent;
         public event UnityAction ClickEvent;
-        public event UnityAction<Vector2> MousePointEvent; 
+        public event UnityAction<Vector2> PointEvent; 
         public event UnityAction MouseDownEvent;
         public event UnityAction MouseUpEvent;
         public event UnityAction RightClickEvent;
@@ -169,9 +169,9 @@ namespace RSG
                 MouseUpEvent?.Invoke();
         }
         
-        public void OnMousePoint( InputAction.CallbackContext context )
+        public void OnPoint( InputAction.CallbackContext context )
         {
-            MousePointEvent?.Invoke( context.ReadValue<Vector2>() );
+            PointEvent?.Invoke( context.ReadValue<Vector2>() );
         }
         
         public void OnSubmit(InputAction.CallbackContext context)

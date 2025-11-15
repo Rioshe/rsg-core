@@ -19,7 +19,7 @@ namespace RSG.Editor
         // --- UI Debug ---
         private Vector2 m_debugNavigate;
         private Vector2 m_debugScrollWheel;
-        private Vector2 m_debugMousePoint;
+        private Vector2 m_debugPoint;
         private string m_debugLastUIEvent = "Idle";
         private double m_lastUIEventTime;
 
@@ -48,7 +48,7 @@ namespace RSG.Editor
             m_inputReader.ScrollWheelEvent += OnScrollWheel;
             m_inputReader.MouseDownEvent += OnMouseDown;
             m_inputReader.MouseUpEvent += OnMouseUp;
-            m_inputReader.MousePointEvent += OnMousePointEvent;
+            m_inputReader.PointEvent += OnPointEvent;
         }
 
         private void OnDisable()
@@ -74,7 +74,7 @@ namespace RSG.Editor
             m_inputReader.RightClickEvent -= OnRightClick;
             m_inputReader.MiddleClickEvent -= OnMiddleClick;
             m_inputReader.ScrollWheelEvent -= OnScrollWheel;
-            m_inputReader.MousePointEvent -= OnMousePointEvent;
+            m_inputReader.PointEvent -= OnPointEvent;
         }
 
         public override void OnInspectorGUI()
@@ -106,7 +106,7 @@ namespace RSG.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("--- UI ---", EditorStyles.boldLabel);
             EditorGUILayout.Vector2Field("Navigate", m_debugNavigate);
-            EditorGUILayout.Vector2Field("Point Position", m_debugMousePoint);
+            EditorGUILayout.Vector2Field("Point Position", m_debugPoint);
             EditorGUILayout.Vector2Field("Scroll Wheel", m_debugScrollWheel);
 
             string uiEvent = GetFlashEvent(m_debugLastUIEvent, m_lastUIEventTime);
@@ -166,7 +166,7 @@ namespace RSG.Editor
         // --- UI Handlers ---
         private void OnNavigate(Vector2 val) { m_debugNavigate = val; Repaint(); }
         private void OnScrollWheel(Vector2 val) { m_debugScrollWheel = val; Repaint(); }
-        private void OnMousePointEvent(Vector2 val) { m_debugMousePoint = val; Repaint(); }
+        private void OnPointEvent(Vector2 val) { m_debugPoint = val; Repaint(); }
         
         private void OnSubmit() => FlashUIEvent("Submit");
         private void OnCancel() => FlashUIEvent("Cancel");
