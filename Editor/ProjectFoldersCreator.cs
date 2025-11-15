@@ -27,7 +27,6 @@ namespace RSG.Editor
                 "Assets/_Project/UI/Fonts",
                 "Assets/_Project/UI/Sprites",
                 "Assets/_Sandbox",
-                "Assets/_ThirdParty"
             };
         
             foreach (string folder in folders)

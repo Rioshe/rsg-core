@@ -1,13 +1,14 @@
 using UnityEngine;
-using UnityEngine.Events; // ReqUIred for UnityAction
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace RSG
 {
     [CreateAssetMenu(fileName = "InputReader", menuName = "RSG/Input/Input Reader")]
     public class InputReader : ScriptableObject, GameInput.IPlayerActions, GameInput.IUIActions
     {
-        private GameInput _gameInput;
+        private GameInput m_gameInput;
 
         #region Player Action Events
         // --- Player ---
@@ -27,8 +28,10 @@ namespace RSG
         public event UnityAction<Vector2> NavigateEvent;
         public event UnityAction SubmitEvent;
         public event UnityAction CancelEvent;
-        public event UnityAction<Vector2> PointEvent;
         public event UnityAction ClickEvent;
+        public event UnityAction<Vector2> MousePointEvent; 
+        public event UnityAction MouseDownEvent;
+        public event UnityAction MouseUpEvent;
         public event UnityAction RightClickEvent;
         public event UnityAction MiddleClickEvent;
         public event UnityAction<Vector2> ScrollWheelEvent;
@@ -38,12 +41,12 @@ namespace RSG
 
         private void OnEnable()
         {
-            if (_gameInput == null)
+            if (m_gameInput == null)
             {
-                _gameInput = new GameInput();
+                m_gameInput = new GameInput();
                 // Set callbacks for BOTH action maps
-                _gameInput.Player.SetCallbacks(this);
-                _gameInput.UI.SetCallbacks(this);
+                m_gameInput.Player.SetCallbacks(this);
+                m_gameInput.UI.SetCallbacks(this);
             }
             
             // Start with UI input enabled (e.g., for a main menu)
@@ -53,32 +56,32 @@ namespace RSG
         private void OnDisable()
         {
             // Disable all action maps
-            _gameInput.Player.Disable();
-            _gameInput.UI.Disable();
+            m_gameInput.Player.Disable();
+            m_gameInput.UI.Disable();
         }
 
         #region Action Map Switchers
         
         public void EnablePlayerInput()
         {
-            _gameInput.UI.Disable();
-            _gameInput.Player.Enable();
+            m_gameInput.UI.Disable();
+            m_gameInput.Player.Enable();
         }
 
         public void EnableUIInput()
         {
-            _gameInput.Player.Disable();
-            _gameInput.UI.Enable();
+            m_gameInput.Player.Disable();
+            m_gameInput.UI.Enable();
         }
 
         public bool IsPlayerInputEnabled()
         {
-            return _gameInput.Player.enabled;
+            return m_gameInput.Player.enabled;
         }
 
         public bool IsUIInputEnabled()
         {
-            return _gameInput.UI.enabled;
+            return m_gameInput.UI.enabled;
         }
         
         #endregion
@@ -153,7 +156,24 @@ namespace RSG
         {
             NavigateEvent?.Invoke(context.ReadValue<Vector2>());
         }
-
+        
+        public void OnMouseDown( InputAction.CallbackContext context )
+        {
+            if (context.performed)
+                MouseDownEvent?.Invoke();
+        }
+        
+        public void OnMouseUp( InputAction.CallbackContext context )
+        {
+            if (context.performed)
+                MouseUpEvent?.Invoke();
+        }
+        
+        public void OnMousePoint( InputAction.CallbackContext context )
+        {
+            MousePointEvent?.Invoke( context.ReadValue<Vector2>() );
+        }
+        
         public void OnSubmit(InputAction.CallbackContext context)
         {
             if (context.performed)
@@ -165,18 +185,13 @@ namespace RSG
             if (context.performed)
                 CancelEvent?.Invoke();
         }
-
-        public void OnPoint(InputAction.CallbackContext context)
-        {
-            PointEvent?.Invoke(context.ReadValue<Vector2>());
-        }
-
+        
         public void OnClick(InputAction.CallbackContext context)
         {
             if (context.performed)
                 ClickEvent?.Invoke();
         }
-
+        
         public void OnRightClick(InputAction.CallbackContext context)
         {
             if (context.performed)
@@ -203,7 +218,6 @@ namespace RSG
         {
             TrackedDeviceOrientationEvent?.Invoke(context.ReadValue<Quaternion>());
         }
-        
         #endregion
     }
 }

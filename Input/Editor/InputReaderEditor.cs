@@ -6,7 +6,7 @@ namespace RSG.Editor
     [CustomEditor(typeof(InputReader))]
     public class InputReaderEditor : UnityEditor.Editor
     {
-        private InputReader _inputReader;
+        private InputReader m_inputReader;
 
         // --- Player Debug ---
         private Vector2 m_debugMove;
@@ -18,61 +18,63 @@ namespace RSG.Editor
 
         // --- UI Debug ---
         private Vector2 m_debugNavigate;
-        private Vector2 m_debugPoint;
         private Vector2 m_debugScrollWheel;
+        private Vector2 m_debugMousePoint;
         private string m_debugLastUIEvent = "Idle";
         private double m_lastUIEventTime;
 
         private void OnEnable()
         {
-            _inputReader = (InputReader)target;
+            m_inputReader = (InputReader)target;
             
             // --- Player Events ---
-            _inputReader.MoveEvent += OnMove;
-            _inputReader.LookEvent += OnLook;
-            _inputReader.AttackEvent += OnAttack;
-            _inputReader.InteractEvent += OnInteract;
-            _inputReader.CrouchEvent += OnCrouch;
-            _inputReader.JumpEvent += OnJump;
-            _inputReader.PreviousEvent += OnPrevious;
-            _inputReader.NextEvent += OnNext;
-            _inputReader.SprintEvent += OnSprint;
+            m_inputReader.MoveEvent += OnMove;
+            m_inputReader.LookEvent += OnLook;
+            m_inputReader.AttackEvent += OnAttack;
+            m_inputReader.InteractEvent += OnInteract;
+            m_inputReader.CrouchEvent += OnCrouch;
+            m_inputReader.JumpEvent += OnJump;
+            m_inputReader.PreviousEvent += OnPrevious;
+            m_inputReader.NextEvent += OnNext;
+            m_inputReader.SprintEvent += OnSprint;
 
             // --- UI Events ---
-            _inputReader.NavigateEvent += OnNavigate;
-            _inputReader.SubmitEvent += OnSubmit;
-            _inputReader.CancelEvent += OnCancel;
-            _inputReader.PointEvent += OnPoint;
-            _inputReader.ClickEvent += OnClick;
-            _inputReader.RightClickEvent += OnRightClick;
-            _inputReader.MiddleClickEvent += OnMiddleClick;
-            _inputReader.ScrollWheelEvent += OnScrollWheel;
+            m_inputReader.NavigateEvent += OnNavigate;
+            m_inputReader.SubmitEvent += OnSubmit;
+            m_inputReader.CancelEvent += OnCancel;
+            m_inputReader.ClickEvent += OnClick;
+            m_inputReader.RightClickEvent += OnRightClick;
+            m_inputReader.MiddleClickEvent += OnMiddleClick;
+            m_inputReader.ScrollWheelEvent += OnScrollWheel;
+            m_inputReader.MouseDownEvent += OnMouseDown;
+            m_inputReader.MouseUpEvent += OnMouseUp;
+            m_inputReader.MousePointEvent += OnMousePointEvent;
         }
 
         private void OnDisable()
         {
-            if (_inputReader == null) return;
+            if (m_inputReader == null) return;
             
             // --- Player Events ---
-            _inputReader.MoveEvent -= OnMove;
-            _inputReader.LookEvent -= OnLook;
-            _inputReader.AttackEvent -= OnAttack;
-            _inputReader.InteractEvent -= OnInteract;
-            _inputReader.CrouchEvent -= OnCrouch;
-            _inputReader.JumpEvent -= OnJump;
-            _inputReader.PreviousEvent -= OnPrevious;
-            _inputReader.NextEvent -= OnNext;
-            _inputReader.SprintEvent -= OnSprint;
+            m_inputReader.MoveEvent -= OnMove;
+            m_inputReader.LookEvent -= OnLook;
+            m_inputReader.AttackEvent -= OnAttack;
+            m_inputReader.InteractEvent -= OnInteract;
+            m_inputReader.CrouchEvent -= OnCrouch;
+            m_inputReader.JumpEvent -= OnJump;
+            m_inputReader.PreviousEvent -= OnPrevious;
+            m_inputReader.NextEvent -= OnNext;
+            m_inputReader.SprintEvent -= OnSprint;
 
             // --- UI Events ---
-            _inputReader.NavigateEvent -= OnNavigate;
-            _inputReader.SubmitEvent -= OnSubmit;
-            _inputReader.CancelEvent -= OnCancel;
-            _inputReader.PointEvent -= OnPoint;
-            _inputReader.ClickEvent -= OnClick;
-            _inputReader.RightClickEvent -= OnRightClick;
-            _inputReader.MiddleClickEvent -= OnMiddleClick;
-            _inputReader.ScrollWheelEvent -= OnScrollWheel;
+            m_inputReader.NavigateEvent -= OnNavigate;
+            m_inputReader.SubmitEvent -= OnSubmit;
+            m_inputReader.CancelEvent -= OnCancel;
+            m_inputReader.ClickEvent -= OnClick;
+            m_inputReader.RightClickEvent -= OnRightClick;
+            m_inputReader.MiddleClickEvent -= OnMiddleClick;
+            m_inputReader.ScrollWheelEvent -= OnScrollWheel;
+            m_inputReader.MousePointEvent -= OnMousePointEvent;
         }
 
         public override void OnInspectorGUI()
@@ -104,23 +106,19 @@ namespace RSG.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("--- UI ---", EditorStyles.boldLabel);
             EditorGUILayout.Vector2Field("Navigate", m_debugNavigate);
-            EditorGUILayout.Vector2Field("Point", m_debugPoint);
+            EditorGUILayout.Vector2Field("Point Position", m_debugMousePoint);
             EditorGUILayout.Vector2Field("Scroll Wheel", m_debugScrollWheel);
 
             string uiEvent = GetFlashEvent(m_debugLastUIEvent, m_lastUIEventTime);
             EditorGUILayout.LabelField("Last UI Event", uiEvent);
-            
-            
-            // Force the inspector to continuously repaint
-            // if an event is flashing, otherwise it will just be one frame.
             if (playerEvent != "Idle" || uiEvent != "Idle")
             {
                 Repaint();
             }
-
+            
             string swapMessage = "N/A";
-            bool isPlayerInputActive = _inputReader.IsPlayerInputEnabled();
-            bool isUIInputActive = _inputReader.IsUIInputEnabled();
+            bool isPlayerInputActive = m_inputReader.IsPlayerInputEnabled();
+            bool isUIInputActive = m_inputReader.IsUIInputEnabled();
             if( isPlayerInputActive)
             {
                 swapMessage = "Switch to UI Input";
@@ -134,11 +132,11 @@ namespace RSG.Editor
             {
                 if( isPlayerInputActive )
                 {
-                    _inputReader.EnableUIInput();
+                    m_inputReader.EnableUIInput();
                 }
                 else if( isUIInputActive )
                 {
-                    _inputReader.EnablePlayerInput();
+                    m_inputReader.EnablePlayerInput();
                 }
             }
         }
@@ -167,12 +165,14 @@ namespace RSG.Editor
 
         // --- UI Handlers ---
         private void OnNavigate(Vector2 val) { m_debugNavigate = val; Repaint(); }
-        private void OnPoint(Vector2 val) { m_debugPoint = val; Repaint(); }
         private void OnScrollWheel(Vector2 val) { m_debugScrollWheel = val; Repaint(); }
-
+        private void OnMousePointEvent(Vector2 val) { m_debugMousePoint = val; Repaint(); }
+        
         private void OnSubmit() => FlashUIEvent("Submit");
         private void OnCancel() => FlashUIEvent("Cancel");
         private void OnClick() => FlashUIEvent("Click");
+        private void OnMouseDown() => FlashUIEvent("MouseDown");
+        private void OnMouseUp() => FlashUIEvent("MouseUp");
         private void OnRightClick() => FlashUIEvent("RightClick");
         private void OnMiddleClick() => FlashUIEvent("MiddleClick");
         
