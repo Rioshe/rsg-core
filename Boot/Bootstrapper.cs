@@ -7,7 +7,7 @@ namespace RSG
     public class Bootstrapper : MonoBehaviour
     {
         [Header("Scene to load after booting")]
-        [SerializeField] private string m_nextSceneName = "_Main";
+        [SerializeField] private string m_nextSceneName = "";
 
         [Header("System prefabs to auto-spawn")]
         [SerializeField] private List<GameObject> m_bootPrefabs = new List<GameObject>();
@@ -63,7 +63,6 @@ namespace RSG
         {
             if (string.IsNullOrEmpty(m_nextSceneName))
             {
-                Debug.LogError("[Bootstrapper] Next scene name is empty.");
                 return;
             }
 
