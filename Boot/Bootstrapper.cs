@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace RSG
 {
     public class Bootstrapper : MonoBehaviour
     {
-        [Header("Scene to load after booting")]
-        [SerializeField] private string m_nextSceneName = "";
+        [Header("Broadcasting To")]
+        [Tooltip("Raised when all systems are loaded and ready.")]
+        [SerializeField] private SystemReadyChannelSO m_systemsReadyChannel;
 
         [Header("System prefabs to auto-spawn")]
         [SerializeField] private List<GameObject> m_bootPrefabs = new List<GameObject>();
@@ -17,57 +19,64 @@ namespace RSG
         [SerializeField] private List<GameObject> m_debugPrefabs = new List<GameObject>();
 #endif
 
+        // CHANGED: Awake cannot be IEnumerator. Logic moved to Start.
         private void Awake()
         {
-            CreateSystems();
+            // We can still spawn them in Awake to ensure they exist immediately
+            // But we wait until Start to initialize them nicely
         }
 
         private void Start()
         {
-            LoadNextScene();
+            List<GameObject> instantiatedSystems = SpawnSystems();
+            List<IBootSystem> bootableSystems = new List<IBootSystem>();
+            
+            foreach (GameObject systemGO in instantiatedSystems)
+            {
+                IBootSystem[] bootables = systemGO.GetComponents<IBootSystem>();
+                bootableSystems.AddRange(bootables);
+            }
+
+            List<IBootSystem> sortedSystems = bootableSystems.OrderBy(x => x.BootPriority).ToList();
+
+            foreach (IBootSystem system in sortedSystems)
+            {
+#if RSG_DEBUG
+                Debug.Log($"[Bootstrapper] Initializing {system.GetType().Name} (Priority: {system.BootPriority})");
+#endif
+                system.Initialize();
+            }
+
+            Debug.Log("[Bootstrapper] Initialization Complete. Raising Systems Ready.");
+            
+            // FIRE THE SIGNAL
+            if (m_systemsReadyChannel)
+            {
+                m_systemsReadyChannel.RaiseEvent();
+            }
         }
-        
-        // -------------------------------------------------------------------
-        // SYSTEM CREATION
-        // --------------------------------------------------------------------
-        private void CreateSystems()
+
+        private List<GameObject> SpawnSystems()
         {
-            List<GameObject> systemsToSpawn = new List<GameObject>(m_bootPrefabs);
+            List<GameObject> allPrefabs = new List<GameObject>(m_bootPrefabs);
 
 #if RSG_DEBUG
-            systemsToSpawn.AddRange(m_debugPrefabs);
+            allPrefabs.AddRange(m_debugPrefabs);
 #endif
 
-            foreach (GameObject prefab in systemsToSpawn)
+            List<GameObject> instantiatedList = new List<GameObject>();
+
+            foreach (GameObject prefab in allPrefabs)
             {
-                if (!prefab)
-                {
-                    Debug.LogWarning("[Bootstrapper] Null prefab in list.");
-                    continue;
-                }
+                if (!prefab) continue;
 
                 GameObject instance = Instantiate(prefab);
                 instance.name = prefab.name;
-
                 DontDestroyOnLoad(instance);
+                instantiatedList.Add(instance);
             }
 
-            Debug.Log($"[Bootstrapper] Spawned {systemsToSpawn.Count} bootstrap systems.");
-        }
-
-
-        // --------------------------------------------------------------------
-        // SCENE LOADING
-        // --------------------------------------------------------------------
-        private void LoadNextScene()
-        {
-            if (string.IsNullOrEmpty(m_nextSceneName))
-            {
-                return;
-            }
-
-            Debug.Log($"[Bootstrapper] Loading next scene: {m_nextSceneName}");
-            SceneManager.LoadSceneAsync(m_nextSceneName);
+            return instantiatedList;
         }
     }
 }
