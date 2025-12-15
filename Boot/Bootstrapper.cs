@@ -4,41 +4,62 @@ using UnityEngine;
 
 namespace RSG
 {
+    [DefaultExecutionOrder(-100)]
     public class Bootstrapper : MonoBehaviour
     {
-        [Header("Broadcasting To")]
+        [Header("Configuration")]
         [Tooltip("Raised when all systems are loaded and ready.")]
-        [SerializeField] private SystemReadyChannelSO m_systemsReadyChannel;
+        [SerializeField] private BootChannelSO m_systemsReadyChannel;
 
-        [Header("System prefabs to auto-spawn")]
-        [SerializeField] private List<GameObject> m_bootPrefabs = new List<GameObject>();
+        [Header("Systems")]
+        [Tooltip("Core systems to spawn. Sorted by priority automatically.")]
+        [SerializeField] private List<BootSystem> m_bootPrefabs = new List<BootSystem>();
 
 #if RSG_DEBUG
-        [Header("Debug-only prefabs")]
+        [Header("Debug")]
         [SerializeField] private List<GameObject> m_debugPrefabs = new List<GameObject>();
 #endif
 
-        // CHANGED: Awake cannot be IEnumerator. Logic moved to Start.
         private void Awake()
         {
-            // We can still spawn them in Awake to ensure they exist immediately
-            // But we wait until Start to initialize them nicely
+            DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
-            List<GameObject> instantiatedSystems = SpawnSystems();
-            List<IBootSystem> bootableSystems = new List<IBootSystem>();
-            
-            foreach (GameObject systemGO in instantiatedSystems)
+            List<BootSystem> initializedSystems = new List<BootSystem>();
+
+            foreach (BootSystem prefab in m_bootPrefabs)
             {
-                IBootSystem[] bootables = systemGO.GetComponents<IBootSystem>();
-                bootableSystems.AddRange(bootables);
+                if (!prefab) continue;
+                
+                BootSystem instance = Instantiate(prefab, transform);
+                initializedSystems.Add(instance);
             }
 
-            List<IBootSystem> sortedSystems = bootableSystems.OrderBy(x => x.BootPriority).ToList();
+            // 2. Instantiate Debug Systems (if any)
+#if RSG_DEBUG
+            foreach (GameObject prefab in m_debugPrefabs)
+            {
+                if (prefab == null) continue;
 
-            foreach (IBootSystem system in sortedSystems)
+                GameObject instance = Instantiate(prefab, transform);
+                
+                // Debug prefabs might be generic GameObjects, or they might be BootSystems.
+                // Check if they need initialization.
+                if (instance.TryGetComponent(out BootSystem bootSystem))
+                {
+                    initializedSystems.Add(bootSystem);
+                }
+            }
+#endif
+
+            // 3. Sort by Priority
+            // We sort the *instances* here to ensure execution order is correct.
+            IOrderedEnumerable<BootSystem> sortedSystems = initializedSystems.OrderBy(x => x.BootPriority);
+
+            // 4. Initialize
+            foreach (BootSystem system in sortedSystems)
             {
 #if RSG_DEBUG
                 Debug.Log($"[Bootstrapper] Initializing {system.GetType().Name} (Priority: {system.BootPriority})");
@@ -46,68 +67,25 @@ namespace RSG
                 system.Initialize();
             }
 
+            // 5. Broadcast
             Debug.Log("[Bootstrapper] Initialization Complete. Raising Systems Ready.");
-            
-            // FIRE THE SIGNAL
-            if (m_systemsReadyChannel)
+            if (m_systemsReadyChannel != null)
             {
                 m_systemsReadyChannel.RaiseEvent();
             }
         }
 
-        private List<GameObject> SpawnSystems()
-        {
-            List<GameObject> allPrefabs = new List<GameObject>(m_bootPrefabs);
-
-#if RSG_DEBUG
-            allPrefabs.AddRange(m_debugPrefabs);
-#endif
-
-            List<GameObject> instantiatedList = new List<GameObject>();
-
-            foreach (GameObject prefab in allPrefabs)
-            {
-                if (!prefab) continue;
-
-                GameObject instance = Instantiate(prefab);
-                instance.name = prefab.name;
-                DontDestroyOnLoad(instance);
-                instantiatedList.Add(instance);
-            }
-
-            return instantiatedList;
-        }
-
         private void OnValidate()
         {
-            SortByPriority(m_bootPrefabs);
-        }
-
-        private void SortByPriority(List<GameObject> prefabs)
-        {
-            if (prefabs == null)
+            // Keeps the inspector list tidy based on priority
+            if (m_bootPrefabs.Count > 1)
             {
-                return;
-            }
-
-            prefabs.RemoveAll(item => item == null);
-
-            prefabs.Sort((a, b) =>
-            {
-                IBootSystem bootA = a.GetComponent<IBootSystem>();
-                IBootSystem bootB = b.GetComponent<IBootSystem>();
-
-                switch( bootA )
+                m_bootPrefabs.Sort((a, b) => 
                 {
-                    case null when bootB == null:
-                        return 0;
-                    case null:
-                        return 1;
-                }
-                if (bootB == null) return -1;
-
-                return bootA.BootPriority.CompareTo(bootB.BootPriority);
-            });
+                    if (!a || !b) return 0;
+                    return a.BootPriority.CompareTo(b.BootPriority);
+                });
+            }
         }
     }
 }
