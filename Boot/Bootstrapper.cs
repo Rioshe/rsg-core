@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -77,6 +76,38 @@ namespace RSG
             }
 
             return instantiatedList;
+        }
+
+        private void OnValidate()
+        {
+            SortByPriority(m_bootPrefabs);
+        }
+
+        private void SortByPriority(List<GameObject> prefabs)
+        {
+            if (prefabs == null)
+            {
+                return;
+            }
+
+            prefabs.RemoveAll(item => item == null);
+
+            prefabs.Sort((a, b) =>
+            {
+                IBootSystem bootA = a.GetComponent<IBootSystem>();
+                IBootSystem bootB = b.GetComponent<IBootSystem>();
+
+                switch( bootA )
+                {
+                    case null when bootB == null:
+                        return 0;
+                    case null:
+                        return 1;
+                }
+                if (bootB == null) return -1;
+
+                return bootA.BootPriority.CompareTo(bootB.BootPriority);
+            });
         }
     }
 }

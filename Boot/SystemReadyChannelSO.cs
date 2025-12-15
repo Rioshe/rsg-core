@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 namespace RSG
 {
-    [CreateAssetMenu(menuName = "RSG/Channels/LevelLoadChannel")]
+    [CreateAssetMenu(menuName = "Channels/RSG/SystemReadyChannel", fileName = "SystemReadyChannel")]
     public class SystemReadyChannelSO : ScriptableObject
     {
         public UnityAction OnSystemsReady;
