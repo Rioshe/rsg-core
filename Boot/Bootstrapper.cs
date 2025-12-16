@@ -9,7 +9,7 @@ namespace RSG
     {
         [Header("Configuration")]
         [Tooltip("Raised when all systems are loaded and ready.")]
-        [SerializeField] private BootChannelSO m_systemsReadyChannel;
+        [SerializeField] private BootChannelSO m_bootChannelSo;
 
         [Header("Systems")]
         [Tooltip("Core systems to spawn. Sorted by priority automatically.")]
@@ -69,15 +69,15 @@ namespace RSG
 
             // 5. Broadcast
             Debug.Log("[Bootstrapper] Initialization Complete. Raising Systems Ready.");
-            if (m_systemsReadyChannel != null)
+            if (m_bootChannelSo)
             {
-                m_systemsReadyChannel.RaiseEvent();
+                m_bootChannelSo.RaiseBootCompleteEvent();
             }
         }
 
         private void OnValidate()
         {
-            // Keeps the inspector list tidy based on priority
+            // Keeps the inspector list tidy based on pri`11ority
             if (m_bootPrefabs.Count > 1)
             {
                 m_bootPrefabs.Sort((a, b) => 
