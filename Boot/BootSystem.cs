@@ -4,11 +4,6 @@ namespace RSG
 {
     public abstract class BootSystem : MonoBehaviour
     {
-        [Tooltip("Lower values initialize first.")]
-        [SerializeField] private int m_bootPriority = 0;
-
-        public int BootPriority => m_bootPriority;
-
         public abstract void Initialize();
 
         protected virtual void OnValidate()

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace RSG
@@ -37,16 +36,12 @@ namespace RSG
                 initializedSystems.Add(instance);
             }
 
-            // 2. Instantiate Debug Systems (if any)
 #if RSG_DEBUG
             foreach (GameObject prefab in m_debugPrefabs)
             {
-                if (prefab == null) continue;
+                if (!prefab) continue;
 
                 GameObject instance = Instantiate(prefab, transform);
-                
-                // Debug prefabs might be generic GameObjects, or they might be BootSystems.
-                // Check if they need initialization.
                 if (instance.TryGetComponent(out BootSystem bootSystem))
                 {
                     initializedSystems.Add(bootSystem);
@@ -54,37 +49,14 @@ namespace RSG
             }
 #endif
 
-            // 3. Sort by Priority
-            // We sort the *instances* here to ensure execution order is correct.
-            IOrderedEnumerable<BootSystem> sortedSystems = initializedSystems.OrderBy(x => x.BootPriority);
-
-            // 4. Initialize
-            foreach (BootSystem system in sortedSystems)
+            foreach (BootSystem system in initializedSystems)
             {
-#if RSG_DEBUG
-                Debug.Log($"[Bootstrapper] Initializing {system.GetType().Name} (Priority: {system.BootPriority})");
-#endif
                 system.Initialize();
             }
 
-            // 5. Broadcast
-            Debug.Log("[Bootstrapper] Initialization Complete. Raising Systems Ready.");
             if (m_bootChannelSo)
             {
                 m_bootChannelSo.RaiseBootCompleteEvent();
-            }
-        }
-
-        private void OnValidate()
-        {
-            // Keeps the inspector list tidy based on pri`11ority
-            if (m_bootPrefabs.Count > 1)
-            {
-                m_bootPrefabs.Sort((a, b) => 
-                {
-                    if (!a || !b) return 0;
-                    return a.BootPriority.CompareTo(b.BootPriority);
-                });
             }
         }
     }
