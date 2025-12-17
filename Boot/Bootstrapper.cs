@@ -12,7 +12,7 @@ namespace RSG
 
         [Header("Systems")]
         [Tooltip("Core systems to spawn. Sorted by priority automatically.")]
-        [SerializeField] private List<BootSystem> m_bootPrefabs = new List<BootSystem>();
+        [SerializeField] private List<BootSystemBase> m_bootPrefabs = new List<BootSystemBase>();
 
 #if RSG_DEBUG
         [Header("Debug")]
@@ -26,13 +26,13 @@ namespace RSG
 
         private void Start()
         {
-            List<BootSystem> initializedSystems = new List<BootSystem>();
+            List<BootSystemBase> initializedSystems = new List<BootSystemBase>();
 
-            foreach (BootSystem prefab in m_bootPrefabs)
+            foreach (BootSystemBase prefab in m_bootPrefabs)
             {
                 if (!prefab) continue;
                 
-                BootSystem instance = Instantiate(prefab, transform);
+                BootSystemBase instance = Instantiate(prefab, transform);
                 initializedSystems.Add(instance);
             }
 
@@ -42,14 +42,14 @@ namespace RSG
                 if (!prefab) continue;
 
                 GameObject instance = Instantiate(prefab, transform);
-                if (instance.TryGetComponent(out BootSystem bootSystem))
+                if (instance.TryGetComponent(out BootSystemBase bootSystem))
                 {
                     initializedSystems.Add(bootSystem);
                 }
             }
 #endif
 
-            foreach (BootSystem system in initializedSystems)
+            foreach (BootSystemBase system in initializedSystems)
             {
                 system.Initialize();
             }

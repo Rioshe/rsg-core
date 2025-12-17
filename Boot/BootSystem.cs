@@ -2,7 +2,7 @@
 
 namespace RSG
 {
-    public abstract class BootSystem : MonoBehaviour
+    public abstract class BootSystemBase : MonoBehaviour
     {
         public abstract void Initialize();
 
