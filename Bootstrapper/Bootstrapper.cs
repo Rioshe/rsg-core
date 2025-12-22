@@ -9,7 +9,7 @@ namespace RSG
     public class Bootstrapper : MonoBehaviour
     {
         [Header("Configuration")]
-        [SerializeField] private SceneDataSO m_firstSceneData;
+        [SerializeField] private string m_mainSceneId = "_Main";
 
         [Header("Systems")]
         [SerializeField] private List<BootSystemBase> m_bootPrefabs = new List<BootSystemBase>();
@@ -71,8 +71,8 @@ namespace RSG
             if (m_splashSystem)
                 await m_splashSystem.FadeOutAsync();
 
-            if (m_sceneSystem && m_firstSceneData)
-                await m_sceneSystem.LoadSceneAsync(m_firstSceneData.sceneName);
+            if (m_sceneSystem && !string.IsNullOrEmpty(m_mainSceneId))
+                await m_sceneSystem.LoadSceneAsync(m_mainSceneId);
 
             if (m_transitionSystem)
                 await m_transitionSystem.HideLoadingAsync();
