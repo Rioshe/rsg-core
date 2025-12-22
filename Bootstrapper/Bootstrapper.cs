@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System.Threading.Tasks;
@@ -52,7 +53,15 @@ namespace RSG
             m_splashSystem = GetSystem<SplashSystem>(systems);
             m_sceneSystem = GetSystem<SceneSystem>(systems);
             m_transitionSystem = GetSystem<TransitionSystem>(systems);
+            
+            CoreServices.Register( m_splashSystem );
+            CoreServices.Register( m_sceneSystem );
+            CoreServices.Register( m_transitionSystem );
+            
+            OnSystemsCreated(systems);
         }
+        
+        protected virtual void OnSystemsCreated(List<BootSystemBase> systems) { }
 
         private async Task InitializeSystemsAsync(List<BootSystemBase> systems)
         {
@@ -71,13 +80,21 @@ namespace RSG
             if (m_splashSystem)
                 await m_splashSystem.FadeOutAsync();
 
-            if (m_sceneSystem && !string.IsNullOrEmpty(m_mainSceneId))
+            if (m_sceneSystem)
                 await m_sceneSystem.LoadSceneAsync(m_mainSceneId);
 
             if (m_transitionSystem)
                 await m_transitionSystem.HideLoadingAsync();
         }
 
-        private static T GetSystem<T>(List<BootSystemBase> systems) where T : BootSystemBase => systems.FirstOrDefault(s => s is T) as T;
+        private void OnDestroy()
+        {
+            CoreServices.Clear();
+            DestroySystems();
+        }
+
+        protected virtual void DestroySystems(){}
+
+        protected static T GetSystem<T>(List<BootSystemBase> systems) where T : BootSystemBase => systems.FirstOrDefault(s => s is T) as T;
     }
 }
