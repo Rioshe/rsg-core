@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System.Threading.Tasks;
@@ -13,11 +12,12 @@ namespace RSG
         [SerializeField] private string m_mainSceneId = "_Main";
 
         [Header("Systems")]
-        [SerializeField] private List<BootSystemBase> m_bootPrefabs = new List<BootSystemBase>();
+        [SerializeField] private List<BootSystemBase> m_bootPrefabs = new();
 
         private SplashSystem m_splashSystem;
         private SceneSystem m_sceneSystem;
         private TransitionSystem m_transitionSystem;
+        private ScreenSystem m_screenSystem;
 
         private void Awake() => DontDestroyOnLoad(gameObject);
 
@@ -53,10 +53,13 @@ namespace RSG
             m_splashSystem = GetSystem<SplashSystem>(systems);
             m_sceneSystem = GetSystem<SceneSystem>(systems);
             m_transitionSystem = GetSystem<TransitionSystem>(systems);
+            m_screenSystem = GetSystem<ScreenSystem>(systems);
             
             CoreServices.Register( m_splashSystem );
             CoreServices.Register( m_sceneSystem );
             CoreServices.Register( m_transitionSystem );
+            
+            UIServices.Register( m_screenSystem );
             
             OnSystemsCreated(systems);
         }
@@ -78,8 +81,11 @@ namespace RSG
                 await m_transitionSystem.ShowLoadingAsync();
 
             if (m_splashSystem)
+            {
                 await m_splashSystem.FadeOutAsync();
-
+                Destroy(m_splashSystem.gameObject);
+            }
+            
             if (m_sceneSystem)
                 await m_sceneSystem.LoadSceneAsync(m_mainSceneId);
 
@@ -90,6 +96,7 @@ namespace RSG
         private void OnDestroy()
         {
             CoreServices.Clear();
+            UIServices.Clear();
             DestroySystems();
         }
 
