@@ -1,107 +1,46 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using UnityEngine;
-using System.Threading.Tasks;
 
 namespace RSG
 {
     [DefaultExecutionOrder(-100)]
     public class Bootstrapper : MonoBehaviour
     {
-        [Header("Configuration")]
-        [SerializeField] private string m_mainSceneId = "_Main";
-
-        [Header("Systems")]
-        [SerializeField] private List<BootSystemBase> m_bootPrefabs = new();
-
-        private SplashSystem m_splashSystem;
-        private SceneSystem m_sceneSystem;
-        private TransitionSystem m_transitionSystem;
-        private ScreenSystem m_screenSystem;
-
-        private void Awake() => DontDestroyOnLoad(gameObject);
+        private void Awake()
+        {
+            DontDestroyOnLoad( gameObject );
+        }
 
         private async void Start()
         {
-            List<BootSystemBase> spawnedSystems = SpawnSystems();
-            CacheSystemReferences(spawnedSystems);
-            spawnedSystems.Sort((a, b) => a.InitializationPriority.CompareTo(b.InitializationPriority));
-
-            Task splashTimerTask = Task.CompletedTask;
-            if (m_splashSystem)
+            try
             {
-                splashTimerTask = m_splashSystem.PlaySplashSequenceAsync();
+                IService[] services = GetComponentsInChildren<IService>();
+                foreach( IService service in services )
+                {
+                    await service.InitializeAsync();
+                }
             }
-
-            await InitializeSystemsAsync(spawnedSystems);
-            await splashTimerTask;
-            await RunVisualSequenceAsync();
-        }
-
-        private List<BootSystemBase> SpawnSystems()
-        {
-            List<BootSystemBase> systems = new List<BootSystemBase>(m_bootPrefabs.Count);
-            foreach (BootSystemBase prefab in m_bootPrefabs)
+            catch (Exception e)
             {
-                if (prefab) systems.Add(Instantiate(prefab, transform));
-            }
-            return systems;
-        }
-
-        private void CacheSystemReferences(List<BootSystemBase> systems)
-        {
-            m_splashSystem = GetSystem<SplashSystem>(systems);
-            m_sceneSystem = GetSystem<SceneSystem>(systems);
-            m_transitionSystem = GetSystem<TransitionSystem>(systems);
-            m_screenSystem = GetSystem<ScreenSystem>(systems);
-            
-            CoreServices.Register( m_splashSystem );
-            CoreServices.Register( m_sceneSystem );
-            CoreServices.Register( m_transitionSystem );
-            
-            UIServices.Register( m_screenSystem );
-            
-            OnSystemsCreated(systems);
-        }
-        
-        protected virtual void OnSystemsCreated(List<BootSystemBase> systems) { }
-
-        private async Task InitializeSystemsAsync(List<BootSystemBase> systems)
-        {
-            foreach (BootSystemBase system in systems)
-            {
-                system.Initialize();
-                await system.InitializeAsync();
+                Debug.LogException(e);
             }
         }
 
-        private async Task RunVisualSequenceAsync()
+        private async void OnDestroy()
         {
-            if (m_transitionSystem)
-                await m_transitionSystem.ShowLoadingAsync();
-
-            if (m_splashSystem)
+            try
             {
-                await m_splashSystem.FadeOutAsync();
-                Destroy(m_splashSystem.gameObject);
+                IService[] services = GetComponentsInChildren<IService>();
+                foreach( IService service in services )
+                {
+                    await service.ShutdownAsync();
+                }
             }
-            
-            if (m_sceneSystem)
-                await m_sceneSystem.LoadSceneAsync(m_mainSceneId);
-
-            if (m_transitionSystem)
-                await m_transitionSystem.HideLoadingAsync();
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
-
-        private void OnDestroy()
-        {
-            CoreServices.Clear();
-            UIServices.Clear();
-            DestroySystems();
-        }
-
-        protected virtual void DestroySystems(){}
-
-        protected static T GetSystem<T>(List<BootSystemBase> systems) where T : BootSystemBase => systems.FirstOrDefault(s => s is T) as T;
     }
 }

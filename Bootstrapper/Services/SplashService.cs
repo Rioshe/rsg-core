@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RSG
 {
-    public class SplashSystem : BootSystemBase
+    public class SplashService : MonoBehaviour, ISplashService
     {
         [Header("UI Configuration")]
         [SerializeField] private CanvasGroup m_splashGroup;
@@ -11,14 +11,22 @@ namespace RSG
 
         [Header("Timing Configuration")]
         [SerializeField] private float m_minDisplayDuration = 2.0f;
-
-        public override void Initialize()
+        
+        public Task InitializeAsync()
         {
-            if (!m_splashGroup) return;
+            if (!m_splashGroup) return Task.CompletedTask;
             m_splashGroup.alpha = 1f;
             m_splashGroup.blocksRaycasts = true;
+            ServiceLocator.Register<ISplashService>(this);
+            return Task.CompletedTask;
         }
-
+        
+        public Task ShutdownAsync()
+        {
+            ServiceLocator.Unregister<ISplashService>(this);
+            return Task.CompletedTask;
+        }
+        
         public async Task PlaySplashSequenceAsync()
         {
             await Task.Delay( (int) (m_minDisplayDuration * 1000) );

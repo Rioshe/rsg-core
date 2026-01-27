@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RSG
 {
-    public class TransitionSystem : BootSystemBase
+    public class TransitionService : MonoBehaviour, ITransitionService
     {
         [Header("Configuration")]
         [SerializeField] private float m_fadeDuration = 0.5f;
@@ -11,13 +11,21 @@ namespace RSG
         [Header("UI Overlays")]
         [SerializeField] private CanvasGroup m_loadingOverlay;
 
-        public override void Initialize()
+        
+        public Task InitializeAsync()
         {
-            if (!m_loadingOverlay) return;
+            if (!m_loadingOverlay) return Task.CompletedTask;
             m_loadingOverlay.alpha = 0f;
             m_loadingOverlay.blocksRaycasts = false;
+            ServiceLocator.Register<ITransitionService>(this);
+            return Task.CompletedTask;
         }
-
+        public Task ShutdownAsync()
+        {
+            ServiceLocator.Unregister<ITransitionService>(this);
+            return Task.CompletedTask;
+        }
+        
         public async Task ShowLoadingAsync()
         {
             if (m_loadingOverlay)

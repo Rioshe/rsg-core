@@ -1,31 +1,32 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace RSG
 {
-    public class ScreenSystem : BootSystemBase
+    public class ScreenService : MonoBehaviour, IScreenService
     {
         [Header("Configuration")]
         [SerializeField] private Transform m_root;
     
         private readonly Dictionary<string, ScreenBase> m_screens = new();
         private string m_currentId;
-
-
-        public override void Initialize() 
+        
+        public Task InitializeAsync()
         {
             DiscoverScreens();
             // Start with all hidden; do not invoke channel on init to avoid side effects
             HideAll();
             
-            // Bind to events
-            ScreenEvents.OnShowScreen += ScreenEvent_ShowById;
+            ServiceLocator.Register<IScreenService>(this);
+            return Task.CompletedTask;
+            // ScreenEvents.OnShowScreen += ScreenEvent_ShowById;
         }
-
-        private void OnDestroy()
+        public Task ShutdownAsync()
         {
-            // Unbind from events
-            ScreenEvents.OnShowScreen -= ScreenEvent_ShowById;
+            ServiceLocator.Unregister<IScreenService>(this);
+            return Task.CompletedTask;
+            //ScreenEvents.OnShowScreen -= ScreenEvent_ShowById;
         }
 
         private void DiscoverScreens()
@@ -72,5 +73,6 @@ namespace RSG
             }
             m_currentId = null;
         }
+
     }
 }

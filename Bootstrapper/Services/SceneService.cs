@@ -4,18 +4,18 @@ using UnityEngine.SceneManagement;
 
 namespace RSG
 {
-    public class SceneSystem : BootSystemBase
+    public class SceneService : MonoBehaviour, ISceneService
     {
-        public override void Initialize()
+        public Task InitializeAsync()
         {
-            SceneEvents.OnRequestSceneLoad += RequestSceneLoadEvent;
+            ServiceLocator.Register<ISceneService>(this);
+            return Task.CompletedTask;
         }
-
-        private void OnDestroy()
+        public Task ShutdownAsync()
         {
-            SceneEvents.OnRequestSceneLoad -= RequestSceneLoadEvent;
+            ServiceLocator.Unregister<ISceneService>(this);
+            return Task.CompletedTask;
         }
-
         private void RequestSceneLoadEvent(string sceneName)
         {
             _ = LoadSceneAsyncInternal(sceneName);
@@ -31,13 +31,11 @@ namespace RSG
             AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
             if( op != null )
             {
-                SceneEvents.RaiseSceneLoadStarted(sceneName);
                 
                 op.allowSceneActivation = false;
 
                 while( op.progress < 0.9f )
                 {
-                    SceneEvents.RaiseSceneLoadProgress(sceneName, op.progress);
                     await Task.Yield();
                 }
 
@@ -45,11 +43,8 @@ namespace RSG
 
                 while( !op.isDone )
                 {
-                    SceneEvents.RaiseSceneLoadProgress(sceneName, op.progress);
                     await Task.Yield();
                 }
-                
-                SceneEvents.RaiseSceneLoadComplete(sceneName);
             }
         }
     }
