@@ -36,9 +36,9 @@ namespace RSG.Editor
 
             if( state == PlayModeStateChange.EnteredPlayMode )
             {
-                if( SceneManager.GetActiveScene().buildIndex != 0 )
+                if( UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex != 0 )
                 {
-                    SceneManager.LoadScene( 0 );
+                    UnityEngine.SceneManagement.SceneManager.LoadScene( 0 );
                 }
             }
         }
