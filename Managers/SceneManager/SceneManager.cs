@@ -1,8 +1,6 @@
-﻿using UnityEngine.SceneManagement;
-
-namespace RSG
+﻿namespace RSG
 {
-    public class SceneLoader : MonoSingleton<SceneLoader>
+    public class SceneManager : MonoSingleton<SceneManager>
     {
         private const string MAIN_SCENE = "_Main";
 
@@ -26,7 +24,7 @@ namespace RSG
         
         private static void LoadMainScene()
         {
-            SceneManager.LoadScene(MAIN_SCENE);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(MAIN_SCENE);
         }
     }
 }

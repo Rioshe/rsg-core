@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RSG
 {
-    public class Splash : MonoBehaviour
+    public class SplashLoader : MonoBehaviour
     {
         [Header("UI")]
         [SerializeField] private CanvasGroup m_splashGroup;

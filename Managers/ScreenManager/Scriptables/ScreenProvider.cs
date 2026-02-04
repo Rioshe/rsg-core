@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RSG
 {
-    [CreateAssetMenu(fileName = "ScreenProvider", menuName = "Screen/Screen Provider")]
+    [CreateAssetMenu(fileName = "ScreenProvider", menuName = "RSG/ScreenManager/Screen Provider")]
     public class ScreenProvider : ScriptableObject
     {
         [SerializeField] private List<BaseScreen> m_screenPrefabs = new List<BaseScreen>();

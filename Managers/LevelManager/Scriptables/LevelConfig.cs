@@ -2,7 +2,7 @@
 
 namespace RSG
 {
-    [CreateAssetMenu(fileName = "LevelConfig", menuName = "RSG/Level Config", order = 0)]
+    [CreateAssetMenu(fileName = "LevelConfig", menuName = "RSG/LevelManager/Level Config", order = 0)]
     public class LevelConfig : ScriptableObject
     {
         [Header("Level Info")]

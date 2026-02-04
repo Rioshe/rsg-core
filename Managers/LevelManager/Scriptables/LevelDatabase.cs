@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RSG
 {
-    [CreateAssetMenu(fileName = "LevelDatabase", menuName = "RSG/Level Database", order = 1)]
+    [CreateAssetMenu(fileName = "LevelDatabase", menuName = "RSG/LevelManager/Level Database", order = 1)]
     public class LevelDatabase : ScriptableObject
     {
         [SerializeField] private LevelConfig[] m_levels = Array.Empty<LevelConfig>();

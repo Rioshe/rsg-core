@@ -11,66 +11,17 @@ namespace RSG
         public static event Action<int, int> OnStageCompleted; // level, stage
         public static event Action<LevelConfig> OnLevelConfigLoaded;
         public static event Action<StageData> OnStageDataLoaded;
-        
-        public static int CurrentLevel { get; private set; } = 1;
-        public static int CurrentStage { get; private set; } = 1;
+
+        private static int m_currentLevel = 1;
+        private static int m_currentStage = 1;
         
         [Header("Configuration")]
         [SerializeField] private LevelDatabase m_levelDatabase;
         
-        [Header("Progress Storage (Optional)")]
-        [SerializeField] private bool m_enableProgressStorage = true;
-        [SerializeField] private StorageType m_storageType = StorageType.PlayerPrefs;
-        
-        private ILevelProgressStorage m_progressStorage;
-        
-        public enum StorageType
-        {
-            None,
-            PlayerPrefs,
-            Memory
-        }
-        
-        public LevelDatabase Database
-        {
-            get => m_levelDatabase;
-        }
-
         protected override void Init()
         {
-            InitializeStorage();
-            LoadProgress();
         }
-        
-        private void InitializeStorage()
-        {
-            if (!m_enableProgressStorage)
-            {
-                m_progressStorage = null;
-                return;
-            }
-            
-            switch (m_storageType)
-            {
-                case StorageType.PlayerPrefs:
-                    m_progressStorage = new PlayerPrefsLevelStorage();
-                    break;
-                case StorageType.Memory:
-                    m_progressStorage = new MemoryLevelStorage();
-                    break;
-                case StorageType.None:
-                default:
-                    m_progressStorage = null;
-                    break;
-            }
-        }
-        
-        public void SetCustomStorage(ILevelProgressStorage storage)
-        {
-            m_progressStorage = storage;
-            LoadProgress();
-        }
-        
+
         public int GetStagesForLevel(int level)
         {
             if (m_levelDatabase == null)
@@ -84,7 +35,7 @@ namespace RSG
         
         public int GetTotalLevels()
         {
-            if (m_levelDatabase == null)
+            if (!m_levelDatabase)
             {
                 Debug.LogError("[LevelManager] No LevelDatabase assigned!");
                 return 0;
@@ -95,9 +46,9 @@ namespace RSG
         
         public LevelConfig GetCurrentLevelConfig()
         {
-            if (m_levelDatabase != null)
+            if (m_levelDatabase)
             {
-                return m_levelDatabase.GetLevel(CurrentLevel);
+                return m_levelDatabase.GetLevel(m_currentLevel);
             }
             
             return null;
@@ -105,9 +56,9 @@ namespace RSG
         
         public StageData GetCurrentStageData()
         {
-            if (m_levelDatabase != null)
+            if (m_levelDatabase)
             {
-                return m_levelDatabase.GetStageData(CurrentLevel, CurrentStage);
+                return m_levelDatabase.GetStageData(m_currentLevel, m_currentStage);
             }
             
             return null;
@@ -115,7 +66,7 @@ namespace RSG
         
         public LevelConfig GetLevelConfig(int level)
         {
-            if (m_levelDatabase != null)
+            if (m_levelDatabase)
             {
                 return m_levelDatabase.GetLevel(level);
             }
@@ -125,7 +76,7 @@ namespace RSG
         
         public StageData GetStageData(int level, int stage)
         {
-            if (m_levelDatabase != null)
+            if (m_levelDatabase)
             {
                 return m_levelDatabase.GetStageData(level, stage);
             }
@@ -135,15 +86,15 @@ namespace RSG
         
         public void CompleteStage()
         {
-            Debug.Log($"[LevelManager] Stage {CurrentStage} of Level {CurrentLevel} completed.");
+            Debug.Log($"[LevelManager] Stage {m_currentStage} of Level {m_currentLevel} completed.");
             
-            OnStageCompleted?.Invoke(CurrentLevel, CurrentStage);
+            OnStageCompleted?.Invoke(m_currentLevel, m_currentStage);
             
-            int totalStages = GetStagesForLevel(CurrentLevel);
+            int totalStages = GetStagesForLevel(m_currentLevel);
             
-            if (CurrentStage < totalStages)
+            if (m_currentStage < totalStages)
             {
-                SetStage(CurrentStage + 1);
+                SetStage(m_currentStage + 1);
             }
             else
             {
@@ -153,13 +104,13 @@ namespace RSG
         
         public void CompleteLevel()
         {
-            Debug.Log($"[LevelManager] Level {CurrentLevel} completed!");
+            Debug.Log($"[LevelManager] Level {m_currentLevel} completed!");
             
-            OnLevelCompleted?.Invoke(CurrentLevel);
+            OnLevelCompleted?.Invoke(m_currentLevel);
             
-            if (CurrentLevel < GetTotalLevels())
+            if (m_currentLevel < GetTotalLevels())
             {
-                SetLevel(CurrentLevel + 1);
+                SetLevel(m_currentLevel + 1);
             }
             else
             {
@@ -175,21 +126,20 @@ namespace RSG
                 return;
             }
             
-            if (CurrentLevel != level)
+            if (m_currentLevel != level)
             {
-                CurrentLevel = level;
-                CurrentStage = 1;
+                m_currentLevel = level;
+                m_currentStage = 1;
                 
-                Debug.Log($"[LevelManager] Level set to {CurrentLevel}");
+                Debug.Log($"[LevelManager] Level set to {m_currentLevel}");
                 
-                OnLevelChanged?.Invoke(CurrentLevel);
-                OnStageChanged?.Invoke(CurrentLevel, CurrentStage);
+                OnLevelChanged?.Invoke(m_currentLevel);
+                OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
                 
-                // Fire config loaded events if using database
-                if (m_levelDatabase != null)
+                if (m_levelDatabase)
                 {
                     LevelConfig levelConfig = GetCurrentLevelConfig();
-                    if (levelConfig != null)
+                    if (levelConfig)
                     {
                         OnLevelConfigLoaded?.Invoke(levelConfig);
                     }
@@ -200,30 +150,28 @@ namespace RSG
                         OnStageDataLoaded?.Invoke(stageData);
                     }
                 }
-                
-                SaveProgress();
             }
         }
         
         public void SetStage(int stage)
         {
-            int totalStages = GetStagesForLevel(CurrentLevel);
+            int totalStages = GetStagesForLevel(m_currentLevel);
             
             if (stage < 1 || stage > totalStages)
             {
-                Debug.LogError($"[LevelManager] Cannot set stage to {stage}. Valid range for level {CurrentLevel}: 1-{totalStages}");
+                Debug.LogError($"[LevelManager] Cannot set stage to {stage}. Valid range for level {m_currentLevel}: 1-{totalStages}");
                 return;
             }
             
-            if (CurrentStage != stage)
+            if (m_currentStage != stage)
             {
-                CurrentStage = stage;
+                m_currentStage = stage;
                 
-                Debug.Log($"[LevelManager] Stage set to {CurrentStage} in Level {CurrentLevel}");
+                Debug.Log($"[LevelManager] Stage set to {m_currentStage} in Level {m_currentLevel}");
                 
-                OnStageChanged?.Invoke(CurrentLevel, CurrentStage);
+                OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
                 
-                if (m_levelDatabase != null)
+                if (m_levelDatabase)
                 {
                     StageData stageData = GetCurrentStageData();
                     if (stageData != null)
@@ -231,8 +179,6 @@ namespace RSG
                         OnStageDataLoaded?.Invoke(stageData);
                     }
                 }
-                
-                SaveProgress();
             }
         }
         
@@ -240,60 +186,33 @@ namespace RSG
         {
             Debug.Log("[LevelManager] Resetting progress to Level 1, Stage 1");
             
-            CurrentLevel = 1;
-            CurrentStage = 1;
+            m_currentLevel = 1;
+            m_currentStage = 1;
             
-            OnLevelChanged?.Invoke(CurrentLevel);
-            OnStageChanged?.Invoke(CurrentLevel, CurrentStage);
-            
-            SaveProgress();
+            OnLevelChanged?.Invoke(m_currentLevel);
+            OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
         }
         
         public void RestartStage()
         {
-            Debug.Log($"[LevelManager] Restarting Stage {CurrentStage} of Level {CurrentLevel}");
-            OnStageChanged?.Invoke(CurrentLevel, CurrentStage);
+            Debug.Log($"[LevelManager] Restarting Stage {m_currentStage} of Level {m_currentLevel}");
+            OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
         }
         
         public void RestartLevel()
         {
-            Debug.Log($"[LevelManager] Restarting Level {CurrentLevel}");
+            Debug.Log($"[LevelManager] Restarting Level {m_currentLevel}");
             SetStage(1);
         }
         
         public bool IsLastStageOfLevel()
         {
-            return CurrentStage == GetStagesForLevel(CurrentLevel);
+            return m_currentStage == GetStagesForLevel(m_currentLevel);
         }
         
         public bool IsLastLevel()
         {
-            return CurrentLevel == GetTotalLevels();
-        }
-        
-        private void SaveProgress()
-        {
-            if (m_progressStorage != null)
-            {
-                m_progressStorage.SaveProgress(CurrentLevel, CurrentStage);
-            }
-        }
-        
-        private void LoadProgress()
-        {
-            if (m_progressStorage != null)
-            {
-                var (level, stage) = m_progressStorage.LoadProgress(1, 1);
-                CurrentLevel = level;
-                CurrentStage = stage;
-                Debug.Log($"[LevelManager] Progress loaded from storage: Level {CurrentLevel}, Stage {CurrentStage}");
-            }
-            else
-            {
-                CurrentLevel = 1;
-                CurrentStage = 1;
-                Debug.Log($"[LevelManager] No storage enabled, starting at Level 1, Stage 1");
-            }
+            return m_currentLevel == GetTotalLevels();
         }
     }
 }

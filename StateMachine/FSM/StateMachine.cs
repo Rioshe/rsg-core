@@ -1,6 +1,6 @@
 using System;
 
-namespace RSG.FiniteStateMachine
+namespace RSG
 {
     public class StateMachine
     {
@@ -49,7 +49,7 @@ namespace RSG.FiniteStateMachine
             {
                 m_targetState = targetState;
 
-#if PROJECT_DEBUG
+#if RSG_DEBUG
                 m_debugStateChangeCallback?.Invoke(m_targetState);
 #endif
             }
