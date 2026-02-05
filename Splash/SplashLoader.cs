@@ -16,6 +16,9 @@ namespace RSG
 
         private void Awake()
         {
+            // Persist through scene loads so fade can complete
+            DontDestroyOnLoad(gameObject);
+            
             GameStateManager.OnStateChanged += HandleStateChanged;
             m_splashGroup.alpha = 0f; 
         }
@@ -53,12 +56,15 @@ namespace RSG
                 yield return new WaitUntil(() => taskGroup.IsCompleted);
             }
 
+            GameStateManager.SetState(GameState.LoadMainScene);
+
             yield return StartCoroutine(FadeRoutine(1f, 0f));
 
             m_splashGroup.blocksRaycasts = false;
             m_externalLoadingTasks.Clear();
-
-            GameStateManager.SetState(GameState.LoadMainScene);
+            
+            // Clean up after fade completes
+            Destroy(gameObject);
         }
 
         private IEnumerator FadeRoutine(float from, float to)

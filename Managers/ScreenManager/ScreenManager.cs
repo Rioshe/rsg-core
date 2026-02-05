@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RSG
@@ -9,31 +10,27 @@ namespace RSG
         [SerializeField] private ScreenProvider m_screenProvider;
         
         private readonly Stack<BaseScreen> m_screenStack = new Stack<BaseScreen>();
-        private readonly Dictionary<int, BaseScreen> m_cachedScreens = new Dictionary<int, BaseScreen>();
+        private readonly Dictionary<Type, BaseScreen> m_cachedScreens = new Dictionary<Type, BaseScreen>();
 
-        public T ShowScreen<T>(int screenId) where T : BaseScreen
+        public T ShowScreen<T>() where T : BaseScreen
         {
-            if (m_screenStack.Count > 0 && m_screenStack.Peek().GetId() == screenId)
+            Type screenType = typeof(T);
+
+            if (m_screenStack.Count > 0 && m_screenStack.Peek().GetType() == screenType)
             {
                 return m_screenStack.Peek() as T;
             }
 
-            if (!m_cachedScreens.TryGetValue(screenId, out BaseScreen instance))
+            if (!m_cachedScreens.TryGetValue(screenType, out BaseScreen instance))
             {
-                BaseScreen prefab = m_screenProvider.GetScreenPrefab(screenId);
+                BaseScreen prefab = m_screenProvider.GetScreenPrefab<T>();
                 if (!prefab) return null;
 
                 instance = Instantiate(prefab, m_canvas.transform);
                 instance.gameObject.SetActive(false); 
-                m_cachedScreens.Add(screenId, instance);
+                m_cachedScreens.Add(screenType, instance);
             }
             
-            if (instance is not T typedInstance)
-            {
-                Debug.LogError($"[ScreenManager] ID {screenId} is not type {typeof(T).Name}");
-                return null;
-            }
-
             if (m_screenStack.Count > 0)
             {
                 BaseScreen top = m_screenStack.Peek();
@@ -46,7 +43,7 @@ namespace RSG
             
             m_screenStack.Push(instance);
             
-            return typedInstance;
+            return instance as T;
         }
 
         public void HideCurrentScreen()

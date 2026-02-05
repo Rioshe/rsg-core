@@ -12,8 +12,6 @@ namespace RSG
             m_onBackPressed = onBackPressed;
         }
         
-        public abstract int GetId();
-
         public virtual void Update()
         {
             if( m_allowBackButton )

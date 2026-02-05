@@ -8,7 +8,6 @@ namespace RSG
         Uninitialised,
         Splash,
         LoadMainScene,
-        Tutorial,
         MainMenu,
         Gameplay,
         Win,
