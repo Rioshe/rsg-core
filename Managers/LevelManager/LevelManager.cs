@@ -5,214 +5,61 @@ namespace RSG
 {
     public class LevelManager : MonoSingleton<LevelManager>
     {
-        public static event Action<int> OnLevelChanged;
-        public static event Action<int, int> OnStageChanged; // level, stage
-        public static event Action<int> OnLevelCompleted;
-        public static event Action<int, int> OnStageCompleted; // level, stage
-        public static event Action<LevelConfig> OnLevelConfigLoaded;
-        public static event Action<StageData> OnStageDataLoaded;
+        public static event Action<LevelConfigBase> OnLevelLoaded;
+        public static event Action<LevelConfigBase> OnLevelCompleted;
+        public static event Action OnAllLevelsCompleted;
 
-        private static int m_currentLevel = 1;
-        private static int m_currentStage = 1;
-        
         [Header("Configuration")]
         [SerializeField] private LevelDatabase m_levelDatabase;
-        
-        protected override void Init()
-        {
-        }
 
-        public int GetStagesForLevel(int level)
-        {
-            if (m_levelDatabase == null)
-            {
-                Debug.LogError("[LevelManager] No LevelDatabase assigned!");
-                return 0;
-            }
-            
-            return m_levelDatabase.GetStagesForLevel(level);
-        }
-        
-        public int GetTotalLevels()
+        private int m_currentLevelIndex;
+        public LevelConfigBase CurrentLevelConfig { get; private set; }
+
+
+        #region Navigation
+        public void LoadLevel(int levelIndex)
         {
             if (!m_levelDatabase)
             {
-                Debug.LogError("[LevelManager] No LevelDatabase assigned!");
-                return 0;
+                Debug.LogError("[LevelManager] No Database assigned!");
+                return;
             }
-            
-            return m_levelDatabase.TotalLevels;
-        }
-        
-        public LevelConfig GetCurrentLevelConfig()
-        {
-            if (m_levelDatabase)
+
+            if (levelIndex < 0 || levelIndex >= m_levelDatabase.TotalLevels)
             {
-                return m_levelDatabase.GetLevel(m_currentLevel);
+                Debug.LogError($"[LevelManager] Level index {levelIndex} out of range.");
+                return;
             }
+
+            m_currentLevelIndex = levelIndex;
+            CurrentLevelConfig = m_levelDatabase.GetLevel(m_currentLevelIndex);
             
-            return null;
+            Debug.Log($"[LevelManager] Level Loaded: {CurrentLevelConfig.LevelName}");
+            OnLevelLoaded?.Invoke(CurrentLevelConfig);
         }
-        
-        public StageData GetCurrentStageData()
-        {
-            if (m_levelDatabase)
-            {
-                return m_levelDatabase.GetStageData(m_currentLevel, m_currentStage);
-            }
-            
-            return null;
-        }
-        
-        public LevelConfig GetLevelConfig(int level)
-        {
-            if (m_levelDatabase)
-            {
-                return m_levelDatabase.GetLevel(level);
-            }
-            
-            return null;
-        }
-        
-        public StageData GetStageData(int level, int stage)
-        {
-            if (m_levelDatabase)
-            {
-                return m_levelDatabase.GetStageData(level, stage);
-            }
-            
-            return null;
-        }
-        
-        public void CompleteStage()
-        {
-            Debug.Log($"[LevelManager] Stage {m_currentStage} of Level {m_currentLevel} completed.");
-            
-            OnStageCompleted?.Invoke(m_currentLevel, m_currentStage);
-            
-            int totalStages = GetStagesForLevel(m_currentLevel);
-            
-            if (m_currentStage < totalStages)
-            {
-                SetStage(m_currentStage + 1);
-            }
-            else
-            {
-                CompleteLevel();
-            }
-        }
-        
+
         public void CompleteLevel()
         {
-            Debug.Log($"[LevelManager] Level {m_currentLevel} completed!");
-            
-            OnLevelCompleted?.Invoke(m_currentLevel);
-            
-            if (m_currentLevel < GetTotalLevels())
+            if (!CurrentLevelConfig) return;
+
+            Debug.Log($"[LevelManager] Level {CurrentLevelConfig.LevelName} Complete!");
+            OnLevelCompleted?.Invoke(CurrentLevelConfig);
+
+            if (m_currentLevelIndex + 1 < m_levelDatabase.TotalLevels)
             {
-                SetLevel(m_currentLevel + 1);
+                LoadLevel(m_currentLevelIndex + 1);
             }
             else
             {
-                Debug.Log($"[LevelManager] All levels completed!");
+                Debug.Log("[LevelManager] All Levels Completed!");
+                OnAllLevelsCompleted?.Invoke();
             }
         }
-        
-        public void SetLevel(int level)
-        {
-            if (level < 1 || level > GetTotalLevels())
-            {
-                Debug.LogError($"[LevelManager] Cannot set level to {level}. Valid range: 1-{GetTotalLevels()}");
-                return;
-            }
-            
-            if (m_currentLevel != level)
-            {
-                m_currentLevel = level;
-                m_currentStage = 1;
-                
-                Debug.Log($"[LevelManager] Level set to {m_currentLevel}");
-                
-                OnLevelChanged?.Invoke(m_currentLevel);
-                OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
-                
-                if (m_levelDatabase)
-                {
-                    LevelConfig levelConfig = GetCurrentLevelConfig();
-                    if (levelConfig)
-                    {
-                        OnLevelConfigLoaded?.Invoke(levelConfig);
-                    }
-                    
-                    StageData stageData = GetCurrentStageData();
-                    if (stageData != null)
-                    {
-                        OnStageDataLoaded?.Invoke(stageData);
-                    }
-                }
-            }
-        }
-        
-        public void SetStage(int stage)
-        {
-            int totalStages = GetStagesForLevel(m_currentLevel);
-            
-            if (stage < 1 || stage > totalStages)
-            {
-                Debug.LogError($"[LevelManager] Cannot set stage to {stage}. Valid range for level {m_currentLevel}: 1-{totalStages}");
-                return;
-            }
-            
-            if (m_currentStage != stage)
-            {
-                m_currentStage = stage;
-                
-                Debug.Log($"[LevelManager] Stage set to {m_currentStage} in Level {m_currentLevel}");
-                
-                OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
-                
-                if (m_levelDatabase)
-                {
-                    StageData stageData = GetCurrentStageData();
-                    if (stageData != null)
-                    {
-                        OnStageDataLoaded?.Invoke(stageData);
-                    }
-                }
-            }
-        }
-        
-        public void ResetProgress()
-        {
-            Debug.Log("[LevelManager] Resetting progress to Level 1, Stage 1");
-            
-            m_currentLevel = 1;
-            m_currentStage = 1;
-            
-            OnLevelChanged?.Invoke(m_currentLevel);
-            OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
-        }
-        
-        public void RestartStage()
-        {
-            Debug.Log($"[LevelManager] Restarting Stage {m_currentStage} of Level {m_currentLevel}");
-            OnStageChanged?.Invoke(m_currentLevel, m_currentStage);
-        }
-        
+
         public void RestartLevel()
         {
-            Debug.Log($"[LevelManager] Restarting Level {m_currentLevel}");
-            SetStage(1);
+            LoadLevel(m_currentLevelIndex);
         }
-        
-        public bool IsLastStageOfLevel()
-        {
-            return m_currentStage == GetStagesForLevel(m_currentLevel);
-        }
-        
-        public bool IsLastLevel()
-        {
-            return m_currentLevel == GetTotalLevels();
-        }
+        #endregion
     }
 }

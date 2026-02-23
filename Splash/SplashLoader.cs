@@ -9,8 +9,8 @@ namespace RSG
     {
         [Header("UI")]
         [SerializeField] private CanvasGroup m_splashGroup;
-        [SerializeField] private float m_fadeDuration = 1.0f;
-        [SerializeField] private float m_minDisplayDuration = 2.0f;
+        [SerializeField] private float m_fadeDuration = 0.25f;
+        [SerializeField] private float m_minDisplayDuration = 1.0f;
 
         private List<Task> m_externalLoadingTasks = new List<Task>();
 
