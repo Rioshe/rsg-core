@@ -4,7 +4,7 @@ namespace RSG
 {
     public class ProgressManager : MonoSingleton<ProgressManager>
     {
-        public int SavedLevel { get; private set; }
+        public int Level { get; private set; }
         public bool IsTutorialCompleted { get; private set; }
 
         protected override void Init()
@@ -14,15 +14,15 @@ namespace RSG
 
         private void LoadProgress()
         {
-            SavedLevel = PrefsManager.GetInt(PrefKeys.INT_CURRENT_LEVEL, 1);
-            IsTutorialCompleted = PrefsManager.GetBool(PrefKeys.BOOL_IS_TUTORIAL_COMPLETED, false);
+            Level = PrefsManager.GetInt(PrefKeys.INT_CURRENT_LEVEL, 1);
+            IsTutorialCompleted = PrefsManager.GetBool(PrefKeys.BOOL_IS_TUTORIAL_COMPLETED);
             
-            Debug.Log($"[ProgressManager] Loaded: Level {SavedLevel}, Tutorial {IsTutorialCompleted}");
+            Debug.Log($"[ProgressManager] Loaded: Level {Level}, Tutorial {IsTutorialCompleted}");
         }
 
         public void SaveProgress(int level, int stage)
         {
-            SavedLevel = level;
+            Level = level;
 
             PrefsManager.SetInt(PrefKeys.INT_CURRENT_LEVEL, level);
             PrefsManager.Save();
@@ -39,22 +39,6 @@ namespace RSG
             PrefsManager.Save();
             
             Debug.Log("[ProgressManager] Tutorial Completed!");
-        }
-
-        public void ResetProgress()
-        {
-            SavedLevel = 1;
-            IsTutorialCompleted = false;
-
-            // Option A: Delete specific keys (Safer if you have settings mixed in)
-            PrefsManager.DeleteKey(PrefKeys.INT_CURRENT_LEVEL);
-            PrefsManager.DeleteKey(PrefKeys.BOOL_IS_TUTORIAL_COMPLETED);
-
-            // Option B: Delete All (Nuclear option)
-            // PrefsManager.DeleteAll(); 
-
-            PrefsManager.Save();
-            Debug.Log("[ProgressManager] Progress Reset.");
         }
     }
 }

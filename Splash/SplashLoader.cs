@@ -16,6 +16,8 @@ namespace RSG
 
         private void Awake()
         {
+            Application.targetFrameRate = 60;
+            
             // Persist through scene loads so fade can complete
             DontDestroyOnLoad(gameObject);
             
