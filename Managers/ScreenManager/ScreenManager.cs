@@ -6,12 +6,17 @@ namespace RSG
 {
     public class ScreenManager : MonoSingleton<ScreenManager>
     {
-        [SerializeField] private Canvas m_canvas;
         [SerializeField] private ScreenProvider m_screenProvider;
-        
+     
+        private Canvas m_canvas;
         private readonly Stack<BaseScreen> m_screenStack = new Stack<BaseScreen>();
         private readonly Dictionary<Type, BaseScreen> m_cachedScreens = new Dictionary<Type, BaseScreen>();
 
+        public void RegisterCanvas( Canvas canvas )
+        {
+            m_canvas = canvas;
+        }
+        
         public T ShowScreen<T>() where T : BaseScreen
         {
             Type screenType = typeof(T);
