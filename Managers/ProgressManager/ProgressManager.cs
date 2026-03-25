@@ -20,14 +20,14 @@ namespace RSG
             Debug.Log($"[ProgressManager] Loaded: Level {Level}, Tutorial {IsTutorialCompleted}");
         }
 
-        public void SaveProgress(int level, int stage)
+        public void SaveProgress(int level)
         {
             Level = level;
 
             PrefsManager.SetInt(PrefKeys.INT_CURRENT_LEVEL, level);
             PrefsManager.Save();
             
-            Debug.Log($"[ProgressManager] Progress Saved: Level {level}, Stage {stage}");
+            Debug.Log($"[ProgressManager] Progress Saved: Level {level}");
         }
         
         public void CompleteTutorial()
