@@ -22,5 +22,10 @@ namespace RSG
                 }
             }
         }
+
+        public virtual void OnBackPressed()
+        {
+            ScreenManager.Instance.HideCurrentScreen();
+        }
     }
 }
