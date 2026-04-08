@@ -10,8 +10,6 @@ namespace RSG
         
         private Action m_onCloseCallback;
 
-        public bool CloseOnBackgroundClick => m_closeOnBackgroundClick;
-
         public void SetCloseCallback(Action onClose)
         {
             m_onCloseCallback = onClose;
