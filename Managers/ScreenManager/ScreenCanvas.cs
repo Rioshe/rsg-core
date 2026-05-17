@@ -1,13 +1,16 @@
-﻿using UnityEngine;
-
-namespace RSG
+﻿namespace RSG
 {
-    [RequireComponent(typeof(Canvas))]
-    public class ScreenCanvas : MonoBehaviour
+    public class ScreenCanvas : CanvasBase
     {
-        private void Awake()
+        protected override string SortingLayerName
         {
-            ScreenManager.Instance.RegisterCanvas(GetComponent<Canvas>());
+            get => "Screen";
+        }
+
+        protected override void Awake()
+        {
+            base.Awake();
+            ScreenManager.Instance.RegisterCanvas(Canvas);
         }
     }
 }

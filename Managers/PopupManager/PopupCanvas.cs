@@ -1,14 +1,16 @@
-﻿using UnityEngine;
-
-namespace RSG
+﻿namespace RSG
 {
-    [RequireComponent(typeof(Canvas))]
-    public class PopupCanvas : MonoBehaviour
+    public class PopupCanvas : CanvasBase
     {
-        private void Awake()
+        protected override string SortingLayerName
         {
-            PopupManager.Instance.RegisterCanvas(GetComponent<Canvas>());
+            get => "Popup";
+        }
+
+        protected override void Awake()
+        {
+            base.Awake();
+            PopupManager.Instance.RegisterCanvas(Canvas);
         }
     }
 }
-
