@@ -6,7 +6,6 @@ namespace RSG
     public abstract class BasePopup : MonoBehaviour
     {
         [SerializeField] private bool m_allowBackButton = true;
-        [SerializeField] private bool m_closeOnBackgroundClick = true;
         
         private Action m_onCloseCallback;
 
