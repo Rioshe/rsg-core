@@ -29,16 +29,6 @@ namespace RSG
         {
             m_onCloseCallback?.Invoke();
         }
-
-        public virtual void OnShow()
-        {
-            // Override in derived classes for custom show logic
-        }
-
-        public virtual void OnHide()
-        {
-            // Override in derived classes for custom hide logic
-        }
     }
 }
 
